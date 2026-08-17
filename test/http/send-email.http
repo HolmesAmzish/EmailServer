@@ -1,0 +1,9 @@
+POST {{baseUrl}}/api/mail/send HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "to": "1272369577@qq.com",
+  "subject": "Test email from HTTP Client",
+  "content": "This is a test email sent by the JetBrains HTTP Client."
+}

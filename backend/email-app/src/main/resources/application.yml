@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: EmailServer
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/email_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: 25
+    username: ""
+    password: ""
+    protocol: smtp
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+          connectiontimeout: 10s
+          timeout: 30s
+          writetimeout: 30s
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER:https://auth.arorms.cn/realms/arorms}
+
+server:
+  port: ${PORT:8080}
+
+application:
+  domain: arorms.cn
+  security:
+    jwt:
+      audience: ${JWT_AUD:email-backend}
+  cors:
+    allowed-origins: ${CORS_ORIGINS:https://mail.arorms.cn,http://localhost:5173}
+  mail:
+    domain: ${MAIL_DOMAIN:arorms.cn}
+    default-from: ${MAIL_DEFAULT_FROM:noreply}
+
+logging:
+  file:
+    name: spring-dev.log

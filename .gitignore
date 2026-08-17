@@ -40,3 +40,5 @@ test/.refresh.token
 
 spring-dev.log
 **/*.gz
+
+test/http/http-client.private.env.json
