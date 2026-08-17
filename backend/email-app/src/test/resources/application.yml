@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/email_db_test
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  mail:
+    host: 127.0.0.1
+    port: 25
+    username: ""
+    password: ""
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/test
+  autoconfigure:
+    exclude: cn.arorms.framework.security.SecurityAutoConfiguration
+
+application:
+  security:
+    jwt:
+      audience: test-audience

@@ -10,17 +10,15 @@
         <version>4.0.6</version>
         <relativePath/>
     </parent>
-    <groupId>cn.arorms.infra</groupId>
-    <artifactId>email-parent</artifactId>
+    <groupId>cn.arorms.email</groupId>
+    <artifactId>email-server</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>EmailServer</name>
     <description>EmailServer (multi-module)</description>
 
     <modules>
-        <module>email-domain</module>
-        <module>email-security</module>
-        <module>email-redis</module>
+        <module>email-common</module>
         <module>email-app</module>
     </modules>
 

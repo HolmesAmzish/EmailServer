@@ -5,27 +5,22 @@
                              https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>cn.arorms.infra</groupId>
-        <artifactId>email-parent</artifactId>
+        <groupId>cn.arorms.email</groupId>
+        <artifactId>email-server</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>email-app</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>cn.arorms.infra</groupId>
-            <artifactId>email-domain</artifactId>
+            <groupId>cn.arorms.email</groupId>
+            <artifactId>email-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>cn.arorms.infra</groupId>
-            <artifactId>email-security</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>cn.arorms.infra</groupId>
-            <artifactId>email-redis</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <groupId>cn.arorms.framework</groupId>
+            <artifactId>arorms-security</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
