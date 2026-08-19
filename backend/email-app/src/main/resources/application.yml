@@ -13,8 +13,8 @@ spring:
       hibernate:
         format_sql: true
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: 25
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:2525}
     username: ""
     password: ""
     protocol: smtp

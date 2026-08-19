@@ -1,4 +1,4 @@
-package cn.arorms.email.domain.repository;
+package cn.arorms.email.repository;
 
 import cn.arorms.email.domain.entity.Mailbox;
 import cn.arorms.email.domain.enums.MailboxType;

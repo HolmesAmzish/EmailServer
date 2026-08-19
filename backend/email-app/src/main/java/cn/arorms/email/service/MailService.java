@@ -6,8 +6,8 @@ import cn.arorms.email.domain.entity.Mail;
 import cn.arorms.email.domain.entity.Mailbox;
 import cn.arorms.email.domain.enums.MailboxType;
 import cn.arorms.email.domain.property.MailProperties;
-import cn.arorms.email.domain.repository.MailRepository;
-import cn.arorms.email.domain.repository.MailboxRepository;
+import cn.arorms.email.repository.MailRepository;
+import cn.arorms.email.repository.MailboxRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
@@ -46,7 +46,8 @@ public class MailService {
      */
     @Transactional
     public Mail send(UserPrincipal fromUser, String to, String subject, String content) throws MessagingException {
-        String fromAddress = fromUser.getEmail();
+//        String fromAddress = fromUser.getEmail();
+        String fromAddress = fromUser.getUsername() + "@arorms.cn";
         if (fromAddress == null || fromAddress.isBlank()) {
             throw new ServiceException("User email is required to send mail");
         }

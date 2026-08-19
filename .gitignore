@@ -32,8 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-**/.env
-
 test/.access.token
 test/.refresh.cookie
 test/.refresh.token
