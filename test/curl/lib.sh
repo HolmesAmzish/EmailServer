@@ -4,7 +4,7 @@
 # Resolve the directory containing this file even when the script is symlinked.
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Load .env.test from the same directory.
+# Load email-spring.env.test from the same directory.
 if [[ -f "$LIB_DIR/.env" ]]; then
   set -a
   # shellcheck disable=SC1091

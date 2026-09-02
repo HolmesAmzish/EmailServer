@@ -14,7 +14,7 @@ spring:
         format_sql: true
   mail:
     host: ${SMTP_HOST:localhost}
-    port: ${SMTP_PORT:2525}
+    port: ${SMTP_PORT:25}
     username: ""
     password: ""
     protocol: smtp
@@ -47,6 +47,8 @@ application:
   mail:
     domain: ${MAIL_DOMAIN:arorms.cn}
     default-from: ${MAIL_DEFAULT_FROM:noreply}
+  maildir:
+    base-path: ${MAILDIR_BASE:/var/mail/Maildir}
 
 logging:
   file:

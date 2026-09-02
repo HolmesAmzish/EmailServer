@@ -2,9 +2,11 @@ package cn.arorms.email.domain.entity;
 
 import cn.arorms.email.domain.enums.DeliveryStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-@Entity
-@Table(name = "mail_recipients")
+@Getter @Setter
+@Entity @Table(name = "mail_recipients")
 public class MailRecipient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,44 +24,4 @@ public class MailRecipient {
 
     @Column(name = "error_message", length = 1024)
     private String errorMessage;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Mail getMail() {
-        return mail;
-    }
-
-    public void setMail(Mail mail) {
-        this.mail = mail;
-    }
-
-    public String getRecipient() {
-        return recipient;
-    }
-
-    public void setRecipient(String recipient) {
-        this.recipient = recipient;
-    }
-
-    public DeliveryStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(DeliveryStatus status) {
-        this.status = status;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-    }
 }

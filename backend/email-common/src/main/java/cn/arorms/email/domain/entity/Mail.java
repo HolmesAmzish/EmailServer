@@ -9,11 +9,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
-@Entity
-@Table(name = "mails")
+@Getter @Setter
+@Entity @Table(name = "mails")
 public class Mail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,8 +43,29 @@ public class Mail {
     @Column(name = "raw_path", length = 512)
     private String rawPath;
 
+    @Column(name = "received_at")
+    private Instant receivedAt;
+
+    @Column(name = "delivered_to", length = 255)
+    private String deliveredTo;
+
+    @Column(name = "reply_to", length = 255)
+    private String replyTo;
+
+    @Column(name = "text_content", columnDefinition = "TEXT")
+    private String textContent;
+
+    @Column(name = "html_content", columnDefinition = "TEXT")
+    private String htmlContent;
+
+    @Column(name = "is_bounce")
+    private boolean bounce = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    public Mail() {
+    }
 
     public Mail(Mailbox mailbox, String messageId, String fromAddress, String subject, Instant sentAt, boolean seen, String rawPath) {
         this.mailbox = mailbox;
@@ -54,77 +77,4 @@ public class Mail {
         this.rawPath = rawPath;
         this.createdAt = Instant.now();
     }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Mailbox getMailbox() {
-        return mailbox;
-    }
-
-    public void setMailbox(Mailbox mailbox) {
-        this.mailbox = mailbox;
-    }
-
-    public String getMessageId() {
-        return messageId;
-    }
-
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
-    }
-
-    public String getFromAddress() {
-        return fromAddress;
-    }
-
-    public void setFromAddress(String fromAddress) {
-        this.fromAddress = fromAddress;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public Instant getSentAt() {
-        return sentAt;
-    }
-
-    public void setSentAt(Instant sentAt) {
-        this.sentAt = sentAt;
-    }
-
-    public boolean isSeen() {
-        return seen;
-    }
-
-    public void setSeen(boolean seen) {
-        this.seen = seen;
-    }
-
-    public String getRawPath() {
-        return rawPath;
-    }
-
-    public void setRawPath(String rawPath) {
-        this.rawPath = rawPath;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
-    }
-
 }

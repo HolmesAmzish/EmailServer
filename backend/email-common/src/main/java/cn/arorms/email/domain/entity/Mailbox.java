@@ -10,11 +10,21 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Instant;
 
+@Getter @Setter
 @Entity
-@Table(name = "mailboxes")
+@Table(
+    name = "mailboxes",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_mailboxes_user_type",
+        columnNames = {"user_id", "type"}
+    )
+)
 public class Mailbox {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,45 +48,5 @@ public class Mailbox {
         if (this.createdAt == null) {
             this.createdAt = Instant.now();
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public MailboxType getType() {
-        return type;
-    }
-
-    public void setType(MailboxType type) {
-        this.type = type;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Instant createdAt) {
-        this.createdAt = createdAt;
     }
 }

@@ -15,7 +15,15 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>EmailServer</name>
-    <description>EmailServer (multi-module)</description>
+    <description>EmailServer</description>
+
+    <repositories>
+        <repository>
+            <id>nexus-arorms</id>
+            <url>https://nexus.arorms.cn/repository/maven-public/</url>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+    </repositories>
 
     <modules>
         <module>email-common</module>

@@ -65,13 +65,7 @@ public class MailService {
         String userId = fromUser.getId();
         var sentBox = mailboxRepository
                 .findByUserIdAndType(userId, MailboxType.SENT)
-                .orElseGet(() -> {
-                    Mailbox box = new Mailbox();
-                    box.setUserId(userId);
-                    box.setType(MailboxType.SENT);
-                    box.setName("Sent");
-                    return mailboxRepository.save(box);
-                });
+                .orElseThrow(() -> new ServiceException("SENT mailbox not found for user: " + userId));
 
         Instant now = Instant.now();
         Mail mail = new Mail(sentBox, messageId, fromAddress, subject, now, true, null);

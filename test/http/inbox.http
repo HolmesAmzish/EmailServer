@@ -1,0 +1,15 @@
+### List all mailboxes for the current user
+GET {{baseUrl}}/api/mail/mailboxes HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### List mails in a mailbox (replace {{mailboxId}} with actual id from the response above)
+GET {{baseUrl}}/api/mail/mailboxes/{{mailboxId}}/mails HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Get mail detail (replace {{mailId}} with actual id from the response above)
+GET {{baseUrl}}/api/mail/mails/{{mailId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Mark mail as read (replace {{mailId}} with actual id)
+PATCH {{baseUrl}}/api/mail/mails/{{mailId}}/read HTTP/1.1
+Authorization: Bearer {{accessToken}}
