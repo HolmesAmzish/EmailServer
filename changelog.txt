@@ -1,0 +1,6 @@
+0.2.1 2026-09-02
+1. Remove useless package scan
+2. Add flatten maven plugin
+
+0.2.0 2026-09-02
+1. Add email receive by watch Maildir
