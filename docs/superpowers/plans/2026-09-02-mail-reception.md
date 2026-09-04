@@ -90,7 +90,7 @@ private boolean bounce = false;
 - [ ] **Step 3: Create `Attachment` entity**
 
 ```java
-package cn.arorms.email.domain.entity;
+package cn.arorms.email.common.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -157,8 +157,8 @@ git commit -m "feat: extend domain model for received mail and attachments"
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.domain.entity.Mailbox;
-import cn.arorms.email.domain.enums.MailboxType;
+import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.common.enums.MailboxType;
 import cn.arorms.email.repository.MailboxRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -176,24 +176,24 @@ public class MailboxService {
     }
 
     private static final Map<MailboxType, String> DEFAULT_NAMES = Map.of(
-        MailboxType.INBOX, "INBOX",
-        MailboxType.SENT, "Sent",
-        MailboxType.TRASH, "Trash"
+            MailboxType.INBOX, "INBOX",
+            MailboxType.SENT, "Sent",
+            MailboxType.TRASH, "Trash"
     );
 
     @Transactional
     public void ensureDefaultMailboxes(String userId) {
         Arrays.stream(MailboxType.values())
-            .filter(type -> type != MailboxType.CUSTOM)
-            .forEach(type -> mailboxRepository
-                .findByUserIdAndType(userId, type)
-                .orElseGet(() -> {
-                    Mailbox box = new Mailbox();
-                    box.setUserId(userId);
-                    box.setType(type);
-                    box.setName(DEFAULT_NAMES.get(type));
-                    return mailboxRepository.save(box);
-                }));
+                .filter(type -> type != MailboxType.CUSTOM)
+                .forEach(type -> mailboxRepository
+                        .findByUserIdAndType(userId, type)
+                        .orElseGet(() -> {
+                            Mailbox box = new Mailbox();
+                            box.setUserId(userId);
+                            box.setType(type);
+                            box.setName(DEFAULT_NAMES.get(type));
+                            return mailboxRepository.save(box);
+                        }));
     }
 }
 ```
@@ -370,9 +370,9 @@ git commit -m "feat: add maildir path configuration"
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.domain.entity.Mailbox;
-import cn.arorms.email.domain.enums.MailboxType;
-import cn.arorms.email.domain.property.MailProperties;
+import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.common.enums.MailboxType;
+import cn.arorms.email.common.property.MailProperties;
 import cn.arorms.email.repository.MailboxRepository;
 import org.springframework.stereotype.Component;
 
@@ -735,8 +735,8 @@ Optional<MailRecipient> findByMail_MessageIdAndRecipient(String messageId, Strin
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.domain.entity.MailRecipient;
-import cn.arorms.email.domain.enums.DeliveryStatus;
+import cn.arorms.email.common.entity.MailRecipient;
+import cn.arorms.email.common.enums.DeliveryStatus;
 import cn.arorms.email.repository.MailRecipientRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -761,11 +761,11 @@ public class BounceHandler {
 
         if (failedRecipient != null) {
             mailRecipientRepository
-                .findByMail_MessageIdAndRecipient(originalMessageId, failedRecipient)
-                .ifPresent(recipient -> {
-                    recipient.setStatus(DeliveryStatus.FAILED);
-                    recipient.setErrorMessage(bounce.bounceReason());
-                });
+                    .findByMail_MessageIdAndRecipient(originalMessageId, failedRecipient)
+                    .ifPresent(recipient -> {
+                        recipient.setStatus(DeliveryStatus.FAILED);
+                        recipient.setErrorMessage(bounce.bounceReason());
+                    });
         }
     }
 }
@@ -806,9 +806,9 @@ git commit -m "feat: handle delivery status notifications and update original ma
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.domain.entity.Attachment;
-import cn.arorms.email.domain.entity.Mail;
-import cn.arorms.email.domain.entity.Mailbox;
+import cn.arorms.email.common.entity.Attachment;
+import cn.arorms.email.common.entity.Mail;
+import cn.arorms.email.common.entity.Mailbox;
 import cn.arorms.email.property.MaildirProperties;
 import cn.arorms.email.repository.AttachmentRepository;
 import cn.arorms.email.repository.MailRepository;
@@ -834,7 +834,7 @@ public class MaildirProcessor {
     private final AttachmentRepository attachmentRepository;
     private final MaildirProperties properties;
 
-    public MaildirProcessor(... inject all ...) {
+    public MaildirProcessor(...inject all ...) {
         // assign fields
     }
 

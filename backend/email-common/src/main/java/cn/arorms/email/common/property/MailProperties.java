@@ -1,4 +1,4 @@
-package cn.arorms.email.domain.property;
+package cn.arorms.email.common.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -20,7 +20,6 @@ public class AuthController {
 
     @GetMapping("/me")
     public ResponseEntity<UserPrincipal> me(@AuthenticationPrincipal UserPrincipal userPrincipal) {
-        mailboxService.ensureDefaultMailboxes(userPrincipal.getId());
         return ResponseEntity.ok(userPrincipal);
     }
 }

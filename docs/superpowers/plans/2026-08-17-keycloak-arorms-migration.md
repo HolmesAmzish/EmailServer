@@ -220,10 +220,10 @@ Remove unused imports: `FetchType`, `JoinColumn`, `ManyToOne`.
 - [ ] **Step 3: Update `MailboxRepository.java`**
 
 ```java
-package cn.arorms.email.domain.repository;
+package cn.arorms.email.common.repository;
 
-import cn.arorms.email.domain.entity.Mailbox;
-import cn.arorms.email.domain.enums.MailboxType;
+import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.common.enums.MailboxType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -427,7 +427,7 @@ git commit -m "refactor(email-app): remove local auth controller, service and ex
 package cn.arorms.email.controllers;
 
 import cn.arorms.framework.security.UserPrincipal;
-import cn.arorms.email.domain.entity.Mail;
+import cn.arorms.email.common.entity.Mail;
 import cn.arorms.email.service.MailService;
 import jakarta.mail.MessagingException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -480,12 +480,12 @@ package cn.arorms.email.service;
 
 import cn.arorms.framework.common.exception.ServiceException;
 import cn.arorms.framework.security.UserPrincipal;
-import cn.arorms.email.domain.entity.Mail;
-import cn.arorms.email.domain.entity.Mailbox;
-import cn.arorms.email.domain.enums.MailboxType;
-import cn.arorms.email.domain.property.MailProperties;
-import cn.arorms.email.domain.repository.MailRepository;
-import cn.arorms.email.domain.repository.MailboxRepository;
+import cn.arorms.email.common.entity.Mail;
+import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.common.enums.MailboxType;
+import cn.arorms.email.common.property.MailProperties;
+import cn.arorms.email.common.repository.MailRepository;
+import cn.arorms.email.common.repository.MailboxRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;

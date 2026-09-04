@@ -1,6 +1,6 @@
-package cn.arorms.email.domain.entity;
+package cn.arorms.email.common.entity;
 
-import cn.arorms.email.domain.enums.MailboxType;
+import cn.arorms.email.common.enums.MailboxType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,6 +35,10 @@ public class Mailbox {
 
     @Column(nullable = false, length = 128)
     private String name;
+
+    // plus address (username+label@arorms.cn)
+    private String username;
+    private String label;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 16)

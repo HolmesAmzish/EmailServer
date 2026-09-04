@@ -1,8 +1,8 @@
 package cn.arorms.email.service;
 
-import cn.arorms.email.domain.entity.Mailbox;
-import cn.arorms.email.domain.enums.MailboxType;
-import cn.arorms.email.domain.property.MailProperties;
+import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.common.enums.MailboxType;
+import cn.arorms.email.common.property.MailProperties;
 import cn.arorms.email.repository.MailboxRepository;
 import org.springframework.stereotype.Component;
 

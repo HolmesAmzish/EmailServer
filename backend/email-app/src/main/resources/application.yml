@@ -35,7 +35,7 @@ spring:
           issuer-uri: ${JWT_ISSUER:https://auth.arorms.cn/realms/arorms}
 
 server:
-  port: ${PORT:8080}
+  port: ${SERVER_PORT:8084}
 
 application:
   domain: arorms.cn

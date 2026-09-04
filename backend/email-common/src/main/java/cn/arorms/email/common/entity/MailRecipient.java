@@ -1,6 +1,6 @@
-package cn.arorms.email.domain.entity;
+package cn.arorms.email.common.entity;
 
-import cn.arorms.email.domain.enums.DeliveryStatus;
+import cn.arorms.email.common.enums.DeliveryStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

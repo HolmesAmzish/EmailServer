@@ -1,6 +1,6 @@
 package cn.arorms.email.repository;
 
-import cn.arorms.email.domain.entity.Attachment;
+import cn.arorms.email.common.entity.Attachment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

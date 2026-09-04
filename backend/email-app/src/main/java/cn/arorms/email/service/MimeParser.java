@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +36,7 @@ public class MimeParser {
 
     private final String domain;
 
-    public MimeParser(cn.arorms.email.domain.property.MailProperties mailProperties) {
+    public MimeParser(cn.arorms.email.common.property.MailProperties mailProperties) {
         this.domain = mailProperties.getDomain();
     }
 

@@ -1,4 +1,4 @@
-package cn.arorms.email.domain.entity;
+package cn.arorms.email.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

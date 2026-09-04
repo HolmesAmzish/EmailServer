@@ -1,10 +1,9 @@
 package cn.arorms.email.controllers;
 
-import cn.arorms.email.domain.entity.Mail;
+import cn.arorms.email.common.entity.Mail;
 import cn.arorms.email.dto.AttachmentDto;
 import cn.arorms.email.dto.MailDetailDto;
 import cn.arorms.email.dto.MailSummaryDto;
-import cn.arorms.email.dto.MailboxDto;
 import cn.arorms.email.repository.AttachmentRepository;
 import cn.arorms.email.repository.MailRepository;
 import cn.arorms.email.repository.MailboxRepository;
@@ -50,13 +49,6 @@ public class MailController {
     @PostMapping("/send")
     public Mail send(@AuthenticationPrincipal UserPrincipal user, @RequestBody SendRequest request) throws MessagingException {
         return mailService.send(user, request.to(), request.subject(), request.content());
-    }
-
-    @GetMapping("/mailboxes")
-    public List<MailboxDto> listMailboxes(@AuthenticationPrincipal UserPrincipal user) {
-        return mailboxRepository.findByUserId(user.getId()).stream()
-            .map(box -> new MailboxDto(box.getId(), box.getName(), box.getType().name()))
-            .toList();
     }
 
     @GetMapping("/mailboxes/{id}/mails")

@@ -1,4 +1,4 @@
-package cn.arorms.email.domain.enums;
+package cn.arorms.email.common.enums;
 
 public enum MailboxType {
     INBOX,

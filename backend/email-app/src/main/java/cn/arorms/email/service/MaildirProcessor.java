@@ -1,8 +1,8 @@
 package cn.arorms.email.service;
 
-import cn.arorms.email.domain.entity.Attachment;
-import cn.arorms.email.domain.entity.Mail;
-import cn.arorms.email.domain.entity.Mailbox;
+import cn.arorms.email.common.entity.Attachment;
+import cn.arorms.email.common.entity.Mail;
+import cn.arorms.email.common.entity.Mailbox;
 import cn.arorms.email.property.MaildirProperties;
 import cn.arorms.email.repository.AttachmentRepository;
 import cn.arorms.email.repository.MailRepository;

@@ -1,7 +1,7 @@
 package cn.arorms.email.service;
 
-import cn.arorms.email.domain.entity.MailRecipient;
-import cn.arorms.email.domain.enums.DeliveryStatus;
+import cn.arorms.email.common.entity.MailRecipient;
+import cn.arorms.email.common.enums.DeliveryStatus;
 import cn.arorms.email.repository.MailRecipientRepository;
 import cn.arorms.email.service.mime.ParsedMessage;
 import org.slf4j.Logger;

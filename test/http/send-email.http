@@ -21,7 +21,7 @@ Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
-  "to": "1272369577@qq.com",
+  "to": "cacc@arorms.cn",
   "subject": "Unicode test",
   "content": "This email contains unicode characters: 中文, 日本語, 한국어, 🎉"
 }

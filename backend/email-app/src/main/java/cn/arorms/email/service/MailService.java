@@ -2,10 +2,9 @@ package cn.arorms.email.service;
 
 import cn.arorms.framework.common.exception.ServiceException;
 import cn.arorms.framework.security.UserPrincipal;
-import cn.arorms.email.domain.entity.Mail;
-import cn.arorms.email.domain.entity.Mailbox;
-import cn.arorms.email.domain.enums.MailboxType;
-import cn.arorms.email.domain.property.MailProperties;
+import cn.arorms.email.common.entity.Mail;
+import cn.arorms.email.common.enums.MailboxType;
+import cn.arorms.email.common.property.MailProperties;
 import cn.arorms.email.repository.MailRepository;
 import cn.arorms.email.repository.MailboxRepository;
 import jakarta.mail.MessagingException;

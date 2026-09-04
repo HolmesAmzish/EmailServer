@@ -1,6 +1,6 @@
 package cn.arorms.email.repository;
 
-import cn.arorms.email.domain.entity.Mail;
+import cn.arorms.email.common.entity.Mail;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
