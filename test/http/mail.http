@@ -1,0 +1,52 @@
+### List all mails across mailboxes
+GET {{baseUrl}}/api/mail?page=0&size=20 HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Get mail detail
+GET {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Mark mail as read
+PATCH {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Send an email
+POST {{baseUrl}}/api/mail/send HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "to": "cacc@arorms.cn",
+  "subject": "Test email from HTTP Client",
+  "content": "This is a test email sent by the JetBrains HTTP Client."
+}
+
+### Create a draft
+POST {{baseUrl}}/api/mail/draft HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "to": "cacc@arorms.cn",
+  "subject": "Draft test",
+  "content": "This is a draft."
+}
+
+### Update a draft
+PUT {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "to": "cacc@arorms.cn",
+  "subject": "Draft test (updated)",
+  "content": "This draft has been updated."
+}
+
+### Delete a mail (moves to TRASH)
+DELETE {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Delete a mail in TRASH (permanent delete)
+DELETE {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}

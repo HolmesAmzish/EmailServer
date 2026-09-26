@@ -1,0 +1,35 @@
+### List all mailboxes (creates default INBOX/SENT/DRAFT/TRASH on first call)
+GET {{baseUrl}}/api/mailbox HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Create a custom mailbox
+POST {{baseUrl}}/api/mailbox HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/x-www-form-urlencoded
+
+mailboxName = Work &
+label = work
+
+### Rename / update a custom mailbox
+PUT {{baseUrl}}/api/mailbox/{{mailboxId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/x-www-form-urlencoded
+
+mailboxName = Work Updated &
+label = work-updated
+
+### Delete a custom mailbox (system mailboxes are rejected)
+DELETE {{baseUrl}}/api/mailbox/{{mailboxId}} HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Delete a system mailbox (expect error)
+DELETE {{baseUrl}}/api/mailbox/1 HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### List mails in a mailbox
+GET {{baseUrl}}/api/mailbox/{{mailboxId}}/mails?page=0&size=20 HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### List mails in another user's mailbox (expect 404)
+GET {{baseUrl}}/api/mailbox/99999/mails HTTP/1.1
+Authorization: Bearer {{accessToken}}

@@ -17,14 +17,6 @@
     <name>EmailServer</name>
     <description>EmailServer</description>
 
-    <repositories>
-        <repository>
-            <id>nexus-arorms</id>
-            <url>https://nexus.arorms.cn/repository/maven-public/</url>
-            <snapshots><enabled>true</enabled></snapshots>
-        </repository>
-    </repositories>
-
     <modules>
         <module>email-common</module>
         <module>email-app</module>
@@ -32,7 +24,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <revision>0.2.1</revision>
+        <revision>0.3.0</revision>
     </properties>
 
     <build>
@@ -72,4 +64,15 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>gitlab-maven-17</id>
+            <url>https://gitlab.arorms.cn/api/v4/projects/17/packages/maven</url>
+        </repository>
+        <repository>
+            <id>gitlab-maven-14</id>
+            <url>https://gitlab.arorms.cn/api/v4/projects/14/packages/maven</url>
+        </repository>
+    </repositories>
 </project>

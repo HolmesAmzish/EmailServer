@@ -5,10 +5,11 @@ import cn.arorms.email.common.enums.MailboxType;
 import java.time.Instant;
 
 public record MailboxVo (
-    String username,
+    Long id,
     String label,
     String name,
     MailboxType type,
-    Instant createdAt
+    Instant createdAt,
+    Instant updateAt
 ) {
 }

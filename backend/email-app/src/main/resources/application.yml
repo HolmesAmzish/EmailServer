@@ -35,20 +35,22 @@ spring:
           issuer-uri: ${JWT_ISSUER:https://auth.arorms.cn/realms/arorms}
 
 server:
-  port: ${SERVER_PORT:8084}
+  port: ${SERVER_PORT:8080}
 
 application:
   domain: arorms.cn
   security:
     jwt:
       audience: ${JWT_AUD:email-backend}
+      client-id: email-react
+
   cors:
     allowed-origins: ${CORS_ORIGINS:https://mail.arorms.cn,http://localhost:5173}
   mail:
     domain: ${MAIL_DOMAIN:arorms.cn}
     default-from: ${MAIL_DEFAULT_FROM:noreply}
   maildir:
-    base-path: ${MAILDIR_BASE:/var/mail/Maildir}
+    base-path: ${MAILDIR_PATH:/var/mail/Maildir}
 
 logging:
   file:

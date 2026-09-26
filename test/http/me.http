@@ -1,6 +1,0 @@
-### Get current user info
-GET {{baseUrl}}/api/auth/me HTTP/1.1
-Authorization: Bearer {{accessToken}}
-
-### Get current user info without auth (should return 401)
-GET {{baseUrl}}/api/auth/me HTTP/1.1

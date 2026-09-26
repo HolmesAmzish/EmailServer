@@ -1,0 +1,15 @@
+### Login (Keycloak password grant)
+POST https://auth.arorms.cn/realms/arorms/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type = password &
+client_id = email-react &
+username = {{username}} &
+password = {{password}}
+
+### Get current user info
+GET {{baseUrl}}/api/auth/me HTTP/1.1
+Authorization: Bearer {{accessToken}}
+
+### Get current user info without auth (expect 401)
+GET {{baseUrl}}/api/auth/me HTTP/1.1
