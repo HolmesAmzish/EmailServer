@@ -1,4 +1,5 @@
-export type MailboxType = 'INBOX' | 'SENT' | 'DRAFT' | 'TRASH' | 'CUSTOM'
+export type MailboxType = 'INBOX' | 'SENT' | 'DRAFT' | 'TRASH' | 'ARCHIVE'
+export type MailViewType = MailboxType | 'STARRED' | 'DELETED'
 
 export interface PageResponse<T> {
   content: T[]
@@ -29,6 +30,7 @@ export interface Mailbox {
 
 export interface MailSummary {
   id: number
+  mailboxType: MailboxType
   fromAddress: string | null
   replyTo: string | null
   deliveredTo: string | null
@@ -36,6 +38,8 @@ export interface MailSummary {
   sentAt: string | null
   receivedAt: string | null
   seen: boolean
+  isStarred: boolean
+  isDeleted: boolean
   textContent: string | null
 }
 
@@ -48,6 +52,7 @@ export interface Attachment {
 
 export interface MailDetail {
   id: number
+  mailboxType: MailboxType
   fromAddress: string | null
   replyTo: string | null
   subject: string | null
@@ -55,6 +60,8 @@ export interface MailDetail {
   receivedAt: string | null
   deliveredTo: string | null
   seen: boolean
+  isStarred: boolean
+  isDeleted: boolean
   textContent: string | null
   htmlContent: string | null
   rawPath: string | null

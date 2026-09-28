@@ -7,8 +7,31 @@ GET {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
 Authorization: Bearer {{accessToken}}
 
 ### Mark mail as read
-PATCH {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+PATCH {{baseUrl}}/api/mail/{{mailId}}/read HTTP/1.1
 Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "seen": true
+}
+
+### Star a mail
+PATCH {{baseUrl}}/api/mail/{{mailId}}/star HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "isStarred": true
+}
+
+### Archive a mail
+PATCH {{baseUrl}}/api/mail/{{mailId}}/archive HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "archived": true
+}
 
 ### Send an email
 POST {{baseUrl}}/api/mail/send HTTP/1.1
@@ -43,10 +66,28 @@ Content-Type: application/json
   "content": "This draft has been updated."
 }
 
-### Delete a mail (moves to TRASH)
-DELETE {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+### Move a mail to Deleted
+PATCH {{baseUrl}}/api/mail/{{mailId}}/delete HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "isDeleted": true
+}
+
+### List Deleted mails
+GET {{baseUrl}}/api/mail/deleted?page=0&size=20 HTTP/1.1
 Authorization: Bearer {{accessToken}}
 
-### Delete a mail in TRASH (permanent delete)
-DELETE {{baseUrl}}/api/mail/{{mailId}} HTTP/1.1
+### Restore a mail from Deleted
+PATCH {{baseUrl}}/api/mail/{{mailId}}/delete HTTP/1.1
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "isDeleted": false
+}
+
+### Permanently delete a mail from Deleted
+DELETE {{baseUrl}}/api/mail/{{mailId}}/permanent HTTP/1.1
 Authorization: Bearer {{accessToken}}

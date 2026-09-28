@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface MailboxRepository extends JpaRepository<Mailbox, Long> {
     Optional<Mailbox> findByUserIdAndType(String userId, MailboxType mailboxType);
 
+    Optional<Mailbox> findByUserIdAndTypeAndLabelIsNull(String userId, MailboxType mailboxType);
+
     Optional<Mailbox> findByUserIdAndName(String userId, String name);
 
     List<Mailbox> findByUserId(String userId);

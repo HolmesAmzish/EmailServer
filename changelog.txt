@@ -1,3 +1,8 @@
+0.4.2
+1. Fix mail delete api to set delete flag instead of moving to Trash
+2. Refactor custom mailbox to archive mailbox
+3. Parse original to address instead of deliver to address caused by postfix catch-all
+
 0.4.1
 1. Add global exception handler
 2. Fix mail file content parse

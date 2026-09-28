@@ -10,13 +10,13 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatListDate, initials } from '@/lib/format'
-import type { MailboxType, MailSummary } from '@/types/mail'
+import type { MailSummary, MailViewType } from '@/types/mail'
 
 export type MailSort = 'newest' | 'oldest'
 
 interface MessageListProps {
   mails: MailSummary[]
-  mailboxType: MailboxType | 'STARRED' | 'ARCHIVE'
+  mailboxView: MailViewType
   selectedId: number | null
   loading: boolean
   error: boolean
@@ -26,7 +26,6 @@ interface MessageListProps {
   search: string
   unreadOnly: boolean
   sort: MailSort
-  starredIds: Set<number>
   refreshing: boolean
   onSearchChange: (value: string) => void
   onUnreadOnlyChange: (value: boolean) => void
@@ -37,8 +36,8 @@ interface MessageListProps {
   onRefresh: () => void
 }
 
-function counterpart(mail: MailSummary, mailboxType: MessageListProps['mailboxType']) {
-  if (mailboxType === 'SENT' || mailboxType === 'DRAFT') {
+function counterpart(mail: MailSummary, mailboxView: MailViewType) {
+  if (mailboxView === 'SENT' || mailboxView === 'DRAFT') {
     return mail.deliveredTo || 'No recipient'
   }
   return mail.fromAddress || 'Unknown sender'
@@ -50,7 +49,7 @@ function excerpt(value: string | null) {
 
 export function MessageList({
   mails,
-  mailboxType,
+  mailboxView,
   selectedId,
   loading,
   error,
@@ -60,7 +59,6 @@ export function MessageList({
   search,
   unreadOnly,
   sort,
-  starredIds,
   refreshing,
   onSearchChange,
   onUnreadOnlyChange,
@@ -175,8 +173,8 @@ export function MessageList({
           <div className="divide-y divide-border">
             {mails.map((mail) => {
               const selected = mail.id === selectedId
-              const starred = starredIds.has(mail.id)
-              const sender = counterpart(mail, mailboxType)
+              const starred = mail.isStarred
+              const sender = counterpart(mail, mailboxView)
               const preview = excerpt(mail.textContent)
               const messageDate = mail.receivedAt ?? mail.sentAt
 

@@ -34,11 +34,26 @@ export const fetchAllMails = (page = 0, size = 100): Promise<PageResponse<MailSu
 export const fetchMailDetail = (id: number): Promise<MailDetail> =>
   get<MailDetail>(`/api/mail/${id}`)
 
-export const markMailRead = (id: number): Promise<void> =>
-  patch<void>(`/api/mail/${id}`)
+export const setMailRead = (id: number, seen: boolean): Promise<void> =>
+  patch<void>(`/api/mail/${id}/read`, { seen })
 
-export const deleteMail = (id: number): Promise<void> =>
-  del<void>(`/api/mail/${id}`)
+export const setMailStarred = (id: number, starred: boolean): Promise<void> =>
+  patch<void>(`/api/mail/${id}/star`, { isStarred: starred })
+
+export const setMailArchived = (id: number, archived: boolean): Promise<void> =>
+  patch<void>(`/api/mail/${id}/archive`, { archived })
+
+export const moveMail = (id: number, mailboxId: number): Promise<void> =>
+  patch<void>(`/api/mail/${id}/move`, { mailboxId })
+
+export const setMailDeleted = (id: number, deleted: boolean): Promise<void> =>
+  patch<void>(`/api/mail/${id}/delete`, { isDeleted: deleted })
+
+export const permanentlyDeleteMail = (id: number): Promise<void> =>
+  del<void>(`/api/mail/${id}/permanent`)
+
+export const fetchDeletedMails = (page = 0, size = 100): Promise<PageResponse<MailSummary>> =>
+  get<PageResponse<MailSummary>>(`/api/mail/deleted?${pageQuery(page, size)}`)
 
 export const createDraft = (input: MailComposeInput): Promise<MailDetail> =>
   post<MailDetail, MailComposeInput>('/api/mail/draft', input)

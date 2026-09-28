@@ -99,6 +99,7 @@ public class MailboxController {
         return mailService.getByMailbox(user, id, pageable)
                 .map(mail -> new MailSummaryVo(
                         mail.getId(),
+                        mail.getMailbox().getType(),
                         mail.getFromAddress(),
                         mail.getReplyTo(),
                         mail.getDeliveredTo(),
@@ -106,6 +107,8 @@ public class MailboxController {
                         mail.getSentAt(),
                         mail.getReceivedAt(),
                         mail.isSeen(),
+                        mail.isStarred(),
+                        mail.isDeleted(),
                         mail.getTextContent()
                 ));
     }

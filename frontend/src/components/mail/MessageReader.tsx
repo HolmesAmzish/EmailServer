@@ -14,23 +14,27 @@ import { cn } from '@/lib/utils'
 import { formatFileSize, formatFullDate, initials } from '@/lib/format'
 import type {
   Attachment,
-  MailboxType,
   MailDetail,
+  MailViewType,
 } from '@/types/mail'
 
 interface MessageReaderProps {
   mail: MailDetail | undefined
-  mailboxType: MailboxType | 'STARRED' | 'ARCHIVE'
+  mailboxView: MailViewType
   loading: boolean
   error: boolean
   starred: boolean
   archived: boolean
+  archiveFolders: { id: number; name: string }[]
   onBack: () => void
   onToggleStar: () => void
   onToggleArchive: () => void
+  onMoveToFolder: (mailboxId: number) => void
   onReply: () => void
   onEditDraft: () => void
   onDelete: () => void
+  onRestore: () => void
+  onPermanentDelete: () => void
   onDownloadAttachment: (attachment: Attachment) => void
 }
 
@@ -103,17 +107,21 @@ function ReaderEmpty() {
 
 export function MessageReader({
   mail,
-  mailboxType,
+  mailboxView,
   loading,
   error,
   starred,
   archived,
+  archiveFolders,
   onBack,
   onToggleStar,
   onToggleArchive,
+  onMoveToFolder,
   onReply,
   onEditDraft,
   onDelete,
+  onRestore,
+  onPermanentDelete,
   onDownloadAttachment,
 }: MessageReaderProps) {
   if (loading && !mail) {
@@ -154,30 +162,60 @@ export function MessageReader({
             <ArrowLeft size={16} />
           </button>
           <span className="truncate text-[12px] font-medium text-muted-foreground">
-            {mailboxType === 'DRAFT' ? 'Draft' : 'Message'}
+            {mailboxView === 'DRAFT'
+              ? 'Draft'
+              : mailboxView === 'DELETED'
+                ? 'Deleted'
+                : mailboxView === 'TRASH'
+                  ? 'Trash'
+                  : 'Message'}
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          <button
-            type="button"
-            onClick={onToggleArchive}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            title={archived ? 'Restore from archive' : 'Archive message'}
-          >
-            {archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
-          </button>
-          <button
-            type="button"
-            onClick={onToggleStar}
-            className={cn(
-              'rounded-lg p-2 transition-colors hover:bg-muted',
-              starred ? 'text-warning' : 'text-muted-foreground hover:text-foreground',
-            )}
-            title={starred ? 'Remove star' : 'Star message'}
-          >
-            <Star size={15} fill={starred ? 'currentColor' : 'none'} />
-          </button>
-          {mailboxType === 'DRAFT' ? (
+          {mailboxView !== 'DELETED' ? (
+            <>
+              <button
+                type="button"
+                onClick={onToggleArchive}
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                title={archived ? 'Restore from archive' : 'Archive message'}
+              >
+                {archived ? <ArchiveRestore size={15} /> : <Archive size={15} />}
+              </button>
+              {mailboxView !== 'DRAFT' && archiveFolders.length > 0 && (
+                <select
+                  value=""
+                  onChange={(event) => {
+                    if (event.target.value) onMoveToFolder(Number(event.target.value))
+                  }}
+                  className="h-8 max-w-[130px] cursor-pointer rounded-lg border border-border bg-transparent px-1.5 text-[12px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  title="Move to folder"
+                  aria-label="Move to folder"
+                >
+                  <option value="" disabled>
+                    Move to…
+                  </option>
+                  {archiveFolders.map((folder) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <button
+                type="button"
+                onClick={onToggleStar}
+                className={cn(
+                  'rounded-lg p-2 transition-colors hover:bg-muted',
+                  starred ? 'text-warning' : 'text-muted-foreground hover:text-foreground',
+                )}
+                title={starred ? 'Remove star' : 'Star message'}
+              >
+                <Star size={15} fill={starred ? 'currentColor' : 'none'} />
+              </button>
+            </>
+          ) : null}
+          {mailboxView === 'DRAFT' ? (
             <button
               type="button"
               onClick={onEditDraft}
@@ -196,14 +234,35 @@ export function MessageReader({
               <Reply size={15} />
             </button>
           )}
-          <button
-            type="button"
-            onClick={onDelete}
-            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
-            title={mailboxType === 'TRASH' ? 'Delete permanently' : 'Move to trash'}
-          >
-            <Trash2 size={15} />
-          </button>
+          {mailboxView === 'DELETED' ? (
+            <>
+              <button
+                type="button"
+                onClick={onRestore}
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                title="Restore message"
+              >
+                <ArchiveRestore size={15} />
+              </button>
+              <button
+                type="button"
+                onClick={onPermanentDelete}
+                className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
+                title="Delete permanently"
+              >
+                <Trash2 size={15} />
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={onDelete}
+              className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-danger/10 hover:text-danger"
+              title="Delete message"
+            >
+              <Trash2 size={15} />
+            </button>
+          )}
         </div>
       </div>
 

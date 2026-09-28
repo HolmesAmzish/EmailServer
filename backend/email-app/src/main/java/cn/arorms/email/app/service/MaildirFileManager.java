@@ -38,4 +38,11 @@ public class MaildirFileManager {
         Path target = dir.resolve(source.getFileName().toString());
         return Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
     }
+
+    /**
+     * Permanently removes a processed Maildir file when its mail record is deleted.
+     */
+    public void delete(Path source) throws IOException {
+        Files.deleteIfExists(source);
+    }
 }

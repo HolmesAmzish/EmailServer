@@ -55,7 +55,8 @@ public class MimeParser {
         String replyTo = extractAddress(message.getReplyTo());
         String subject = message.getSubject();
         Instant sentAt = extractSentAt(message);
-        String deliveredTo = extractSingleHeader(message, "Delivered-To");
+//        String deliveredTo = extractSingleHeader(message, "Delivered-To");
+        String deliveredTo = extractSingleHeader(message, "X-Original-To");
 
         List<String> recipients = extractLocalRecipients(message);
 

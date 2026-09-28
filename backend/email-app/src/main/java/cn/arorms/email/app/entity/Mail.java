@@ -1,6 +1,7 @@
 package cn.arorms.email.app.entity;
 
 import cn.arorms.framework.common.domain.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,6 +19,10 @@ public class Mail extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "mailbox_id", nullable = false)
     private Mailbox mailbox;
+
+    // Denormalized owner of the mail, mirrors mailbox.user_id; avoids join queries for ownership checks.
+    @Column(name = "user_id", nullable = false, length = 36)
+    private String userId;
 
     @Column(name = "message_id", length = 255)
     private String messageId;
@@ -43,6 +48,9 @@ public class Mail extends BaseEntity {
     @Column(nullable = false)
     private boolean seen = false;
 
+    @Column(name = "is_starred")
+    private boolean isStarred = false;
+
     @Column(name = "raw_path", length = 512)
     private String rawPath;
 
@@ -54,6 +62,9 @@ public class Mail extends BaseEntity {
 
     @Column(name = "is_bounce")
     private boolean bounce = false;
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
     public Mail() {
     }

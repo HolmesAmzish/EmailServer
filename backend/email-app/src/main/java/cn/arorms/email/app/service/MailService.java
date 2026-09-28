@@ -8,6 +8,7 @@ import cn.arorms.email.app.repository.AttachmentRepository;
 import cn.arorms.email.app.repository.MailRecipientRepository;
 import cn.arorms.email.common.enums.DeliveryStatus;
 import cn.arorms.email.common.requests.MailDraftUpsertRequest;
+import cn.arorms.email.common.responses.MailDetailVo;
 import cn.arorms.email.common.responses.MailSummaryVo;
 import cn.arorms.framework.common.domain.PageResponse;
 import cn.arorms.framework.common.exception.ServiceException;
@@ -25,6 +26,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.nio.file.Path;
+import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -37,6 +41,7 @@ public class MailService {
     private final AttachmentRepository attachmentRepository;
     private final MailboxService mailboxService;
     private final MailProperties mailProps;
+    private final MaildirFileManager maildirFileManager;
 
     public MailService(JavaMailSenderImpl mailSender,
                        MailboxRepository mailboxRepository,
@@ -44,7 +49,8 @@ public class MailService {
                        MailRecipientRepository mailRecipientRepository,
                        AttachmentRepository attachmentRepository,
                        MailboxService mailboxService,
-                       MailProperties mailProps) {
+                       MailProperties mailProps,
+                       MaildirFileManager maildirFileManager) {
         this.mailSender = mailSender;
         this.mailboxRepository = mailboxRepository;
         this.mailRepository = mailRepository;
@@ -52,6 +58,7 @@ public class MailService {
         this.attachmentRepository = attachmentRepository;
         this.mailboxService = mailboxService;
         this.mailProps = mailProps;
+        this.maildirFileManager = maildirFileManager;
     }
 
     /**
@@ -87,18 +94,43 @@ public class MailService {
 
         Instant now = Instant.now();
         Mail mail = new Mail(sentBox, messageId, fromAddress, subject, now, true, null);
+        mail.setUserId(userId);
         mail = mailRepository.save(mail);
 
         return mail;
     }
 
     /**
+     * Map a mail to its detail view (attachments are not loaded here; empty list).
+     */
+    public MailDetailVo toDetailVo(Mail mail) {
+        return new MailDetailVo(
+                mail.getId(),
+                mail.getMailbox().getType(),
+                mail.getFromAddress(),
+                mail.getReplyTo(),
+                mail.getSubject(),
+                mail.getSentAt(),
+                mail.getReceivedAt(),
+                mail.getDeliveredTo(),
+                mail.isSeen(),
+                mail.isStarred(),
+                mail.isDeleted(),
+                mail.getTextContent(),
+                mail.getHtmlContent(),
+                mail.getRawPath(),
+                List.of()
+        );
+    }
+
+    /**
      * Get all mails of the user across mailboxes, as summary views.
      */
     public PageResponse<MailSummaryVo> getAll(UserPrincipal user, Pageable pageable) {
-        Page<Mail> page = mailRepository.findByMailboxUserId(user.getId(), pageable);
+        Page<Mail> page = mailRepository.findByUserIdAndIsDeletedFalse(user.getId(), pageable);
         return PageResponse.fromPage(page.map(mail -> new MailSummaryVo(
                 mail.getId(),
+                mail.getMailbox().getType(),
                 mail.getFromAddress(),
                 mail.getReplyTo(),
                 mail.getDeliveredTo(),
@@ -106,6 +138,29 @@ public class MailService {
                 mail.getSentAt(),
                 mail.getReceivedAt(),
                 mail.isSeen(),
+                mail.isStarred(),
+                mail.isDeleted(),
+                mail.getTextContent()
+        )));
+    }
+
+    /**
+     * Get all soft-deleted mails of the user, as summary views.
+     */
+    public PageResponse<MailSummaryVo> getDeleted(UserPrincipal user, Pageable pageable) {
+        Page<Mail> page = mailRepository.findByUserIdAndIsDeletedTrue(user.getId(), pageable);
+        return PageResponse.fromPage(page.map(mail -> new MailSummaryVo(
+                mail.getId(),
+                mail.getMailbox().getType(),
+                mail.getFromAddress(),
+                mail.getReplyTo(),
+                mail.getDeliveredTo(),
+                mail.getSubject(),
+                mail.getSentAt(),
+                mail.getReceivedAt(),
+                mail.isSeen(),
+                mail.isStarred(),
+                mail.isDeleted(),
                 mail.getTextContent()
         )));
     }
@@ -117,7 +172,7 @@ public class MailService {
         Mailbox mailbox = mailboxRepository.findById(mailboxId)
                 .filter(b -> b.getUserId().equals(user.getId()))
                 .orElseThrow(() -> new ServiceException("Mailbox not found: " + mailboxId));
-        return mailRepository.findByMailboxIdAndMailboxUserId(mailbox.getId(), user.getId(), pageable);
+        return mailRepository.findByMailboxIdAndUserIdAndIsDeletedFalse(mailbox.getId(), user.getId(), pageable);
     }
 
     /**
@@ -136,6 +191,7 @@ public class MailService {
 
         Mail mail = new Mail();
         mail.setMailbox(draftBox);
+        mail.setUserId(user.getId());
         mail.setFromAddress(user.getUsername() + "@" + mailProps.getDomain());
         mail.setSubject(request.subject());
         mail.setTextContent(request.content());
@@ -151,7 +207,7 @@ public class MailService {
      */
     @Transactional
     public Mail updateDraft(UserPrincipal user, Long id, MailDraftUpsertRequest request) {
-        Mail mail = mailRepository.findByIdAndMailboxUserId(id, user.getId())
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ServiceException("Mail not found: " + id));
         if (mail.getMailbox().getType() != MailboxType.DRAFT) {
             throw new ServiceException("Not a draft: " + id);
@@ -167,30 +223,92 @@ public class MailService {
     }
 
     /**
-     * Delete a mail: moves it to TRASH, or permanently deletes it if already in TRASH.
+     * Soft delete or restore a mail. The mail stays in its current mailbox,
+     * so restoring only clears the flag and the mail is back in place.
      */
     @Transactional
-    public void delete(UserPrincipal user, Long id) {
-        Mail mail = mailRepository.findByIdAndMailboxUserId(id, user.getId())
+    public void setDeleted(UserPrincipal user, Long id, boolean deleted) {
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new ServiceException("Mail not found: " + id));
+        mail.setDeleted(deleted);
+        mailRepository.save(mail);
+    }
 
-        if (mail.getMailbox().getType() != MailboxType.TRASH) {
-            Mailbox trashBox = mailboxRepository
-                    .findByUserIdAndType(user.getId(), MailboxType.TRASH)
-                    .orElseGet(() -> {
-                        mailboxService.ensureDefaultMailboxes(user);
-                        return mailboxRepository
-                                .findByUserIdAndType(user.getId(), MailboxType.TRASH)
-                                .orElseThrow(() -> new ServiceException("TRASH mailbox not found for user: " + user.getId()));
-                    });
-            mail.setMailbox(trashBox);
-            mailRepository.save(mail);
-            return;
+    /**
+     * Permanently delete a mail from the recycle bin and remove all associated data.
+     */
+    @Transactional
+    public void permanentlyDelete(UserPrincipal user, Long id) {
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ServiceException("Mail not found: " + id));
+        if (!mail.isDeleted()) {
+            throw new ServiceException("Mail must be moved to Deleted before permanent deletion: " + id);
         }
 
         attachmentRepository.deleteByMailId(mail.getId());
         mailRecipientRepository.deleteByMailId(mail.getId());
         mailRepository.delete(mail);
+
+        if (mail.getRawPath() != null && !mail.getRawPath().isBlank()) {
+            try {
+                maildirFileManager.delete(Path.of(mail.getRawPath()));
+            } catch (IOException e) {
+                throw new ServiceException("Failed to delete mail file: " + mail.getRawPath());
+            }
+        }
+    }
+
+    /**
+     * Mark a mail as read or unread. Verifies the mail belongs to the user.
+     */
+    @Transactional
+    public void setRead(UserPrincipal user, Long id, boolean seen) {
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ServiceException("Mail not found: " + id));
+        mail.setSeen(seen);
+        mailRepository.save(mail);
+    }
+
+    /**
+     * Star or unstar a mail. Verifies the mail belongs to the user.
+     */
+    @Transactional
+    public void setStarred(UserPrincipal user, Long id, boolean starred) {
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ServiceException("Mail not found: " + id));
+        mail.setStarred(starred);
+        mailRepository.save(mail);
+    }
+
+    /**
+     * Archive a mail by moving it to the user's default ARCHIVE mailbox,
+     * or restore it by moving it back to INBOX. Verifies the mail belongs to the user.
+     */
+    @Transactional
+    public void setArchived(UserPrincipal user, Long id, boolean archived) {
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ServiceException("Mail not found: " + id));
+        MailboxType targetType = archived ? MailboxType.ARCHIVE : MailboxType.INBOX;
+        Mailbox target = mailboxRepository
+                .findByUserIdAndTypeAndLabelIsNull(user.getId(), targetType)
+                .orElseThrow(() -> new ServiceException(targetType + " mailbox not found for user: " + user.getId()));
+        mail.setMailbox(target);
+        mailRepository.save(mail);
+    }
+
+    /**
+     * Move a mail into one of the user's archive folders (default or labeled ARCHIVE mailbox).
+     */
+    @Transactional
+    public void moveToArchiveFolder(UserPrincipal user, Long id, Long mailboxId) {
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
+                .orElseThrow(() -> new ServiceException("Mail not found: " + id));
+        Mailbox target = mailboxRepository.findById(mailboxId)
+                .filter(b -> b.getUserId().equals(user.getId()))
+                .filter(b -> b.getType() == MailboxType.ARCHIVE)
+                .orElseThrow(() -> new ServiceException("Archive mailbox not found: " + mailboxId));
+        mail.setMailbox(target);
+        mailRepository.save(mail);
     }
 
     private void saveRecipient(Mail mail, String to) {

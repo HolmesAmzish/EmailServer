@@ -25,7 +25,8 @@ public class MailboxService {
             MailboxType.INBOX, "Inbox",
             MailboxType.SENT, "Sent",
             MailboxType.DRAFT, "Drafts",
-            MailboxType.TRASH, "Trash"
+            MailboxType.TRASH, "Trash",
+            MailboxType.ARCHIVE, "Archive"
     );
 
     private final MailboxRepository mailboxRepository;
@@ -37,23 +38,22 @@ public class MailboxService {
     }
 
     /**
-     * Ensures the user has the default set of mailboxes (INBOX, SENT, DRAFT, TRASH).
-     * Called lazily whenever the mailbox list is loaded.
+     * Creates the default set of mailboxes (INBOX, SENT, DRAFT, TRASH, ARCHIVE)
+     * when the user has no mailboxes yet. Called lazily whenever the mailbox list is loaded.
      */
     @Transactional
     public void ensureDefaultMailboxes(UserPrincipal user) {
-        Arrays.stream(MailboxType.values())
-                .filter(type -> type != MailboxType.CUSTOM)
-                .forEach(type -> mailboxRepository
-                        .findByUserIdAndType(user.getId(), type)
-                        .orElseGet(() -> {
-                            Mailbox box = new Mailbox();
-                            box.setUserId(user.getId());
-                            box.setUsername(user.getUsername());
-                            box.setType(type);
-                            box.setName(DEFAULT_NAMES.get(type));
-                            return mailboxRepository.save(box);
-                        }));
+        if (!mailboxRepository.findByUserId(user.getId()).isEmpty()) {
+            return;
+        }
+        Arrays.stream(MailboxType.values()).forEach(type -> {
+            Mailbox box = new Mailbox();
+            box.setUserId(user.getId());
+            box.setUsername(user.getUsername());
+            box.setType(type);
+            box.setName(DEFAULT_NAMES.get(type));
+            mailboxRepository.save(box);
+        });
     }
 
     /**
@@ -76,10 +76,13 @@ public class MailboxService {
 
     @Transactional
     public void upsert(UserPrincipal user, MailboxUpsertRequest request) {
+        if (request.label() == null || request.label().isBlank()) {
+            throw new ServiceException("A label is required for a custom archive folder");
+        }
         Mailbox box = new Mailbox();
         box.setUserId(user.getId());
         box.setUsername(user.getUsername());
-        box.setType(MailboxType.CUSTOM);
+        box.setType(MailboxType.ARCHIVE);
         box.setName(request.mailboxName());
         box.setLabel(request.label());
         mailboxRepository.save(box);
@@ -90,6 +93,10 @@ public class MailboxService {
         Mailbox box = mailboxRepository.findById(id)
                 .filter(b -> b.getUserId().equals(user.getId()))
                 .orElseThrow(() -> new ServiceException("Mailbox not found: " + id));
+        // System mailboxes and the default ARCHIVE box (label null) cannot be modified.
+        if (box.getLabel() == null || box.getLabel().isBlank()) {
+            throw new ServiceException("Cannot modify system mailbox: " + box.getName());
+        }
         box.setName(request.mailboxName());
         box.setLabel(request.label());
         mailboxRepository.save(box);
@@ -100,7 +107,11 @@ public class MailboxService {
         Mailbox box = mailboxRepository.findById(id)
                 .filter(b -> b.getUserId().equals(user.getId()))
                 .orElseThrow(() -> new ServiceException("Mailbox not found: " + id));
-        if (box.getType() != MailboxType.CUSTOM) {
+        // Labeled ARCHIVE boxes (former custom folders) may be deleted; system boxes may not.
+        boolean isSystem = box.getType() != MailboxType.ARCHIVE
+                || box.getLabel() == null
+                || box.getLabel().isBlank();
+        if (isSystem) {
             throw new ServiceException("Cannot delete system mailbox: " + box.getName());
         }
         mailRepository.deleteByMailboxId(box.getId());

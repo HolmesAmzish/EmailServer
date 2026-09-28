@@ -12,12 +12,16 @@ import {
 import {
   createDraft,
   createMailbox,
-  deleteMail,
   deleteMailbox,
   downloadAttachment,
   fetchMailboxMails,
-  markMailRead,
+  moveMail,
+  permanentlyDeleteMail,
   sendMail,
+  setMailArchived,
+  setMailDeleted,
+  setMailRead,
+  setMailStarred,
   updateDraft,
   updateMailbox,
 } from '@/api/mail'
@@ -36,6 +40,7 @@ import {
   MAIL_DETAIL_QUERY_KEY,
   MAILS_QUERY_KEY,
   useAllMails,
+  useDeletedMails,
   useMailboxMails,
 } from '@/hooks/useMails'
 import { useMailDetail } from '@/hooks/useMailDetail'
@@ -50,6 +55,7 @@ import type {
   MailboxUpsertInput,
   MailComposeInput,
   MailSummary,
+  MailViewType,
 } from '@/types/mail'
 
 const SYSTEM_MAILBOXES: { key: string; type: MailboxType; label: string }[] = [
@@ -57,6 +63,7 @@ const SYSTEM_MAILBOXES: { key: string; type: MailboxType; label: string }[] = [
   { key: 'sent', type: 'SENT', label: 'Sent' },
   { key: 'drafts', type: 'DRAFT', label: 'Drafts' },
   { key: 'trash', type: 'TRASH', label: 'Trash' },
+  { key: 'archive', type: 'ARCHIVE', label: 'Archive' },
 ]
 
 function resolveMailbox(key: string, mailboxes: Mailbox[]) {
@@ -64,19 +71,20 @@ function resolveMailbox(key: string, mailboxes: Mailbox[]) {
   if (system) return mailboxes.find((mailbox) => mailbox.type === system.type) ?? null
   if (key.startsWith('custom-')) {
     const id = Number(key.slice('custom-'.length))
-    return mailboxes.find((mailbox) => mailbox.id === id && mailbox.type === 'CUSTOM') ?? null
+    return mailboxes.find((mailbox) => mailbox.id === id && mailbox.type === 'ARCHIVE') ?? null
   }
   return null
 }
 
-function resolveMailboxType(key: string, mailbox: Mailbox | null): MailboxType | 'STARRED' | 'ARCHIVE' {
+function resolveMailboxView(key: string, mailbox: Mailbox | null): MailViewType {
   if (key === 'starred') return 'STARRED'
+  if (key === 'deleted') return 'DELETED'
   if (key === 'archive') return 'ARCHIVE'
   return mailbox?.type ?? 'INBOX'
 }
 
 function isKnownMailboxKey(key: string, mailboxes: Mailbox[]) {
-  if (['inbox', 'sent', 'drafts', 'trash', 'starred', 'archive'].includes(key)) return true
+  if (['inbox', 'sent', 'drafts', 'trash', 'starred', 'archive', 'deleted'].includes(key)) return true
   if (key.startsWith('custom-')) {
     const id = Number(key.slice('custom-'.length))
     return Number.isFinite(id) && mailboxes.some((mailbox) => mailbox.id === id)
@@ -87,6 +95,7 @@ function isKnownMailboxKey(key: string, mailboxes: Mailbox[]) {
 function folderTitle(key: string, mailbox: Mailbox | null) {
   if (key === 'starred') return 'Starred'
   if (key === 'archive') return 'Archive'
+  if (key === 'deleted') return 'Deleted'
   if (mailbox) return mailbox.name
   return SYSTEM_MAILBOXES.find((item) => item.key === key)?.label ?? 'Mailbox'
 }
@@ -182,9 +191,6 @@ export function MailWorkspacePage() {
   const [composeSession, setComposeSession] = useState<ComposeSession | null>(null)
   const [mailboxDialogOpen, setMailboxDialogOpen] = useState(false)
   const [editingMailbox, setEditingMailbox] = useState<Mailbox | null>(null)
-  const [starredIds, setStarredIds] = useState<Set<number>>(new Set())
-  const [archivedIds, setArchivedIds] = useState<Set<number>>(new Set())
-
   const mailId = mailIdParam && /^\d+$/.test(mailIdParam) ? Number(mailIdParam) : null
   const mailboxesQuery = useMailboxes()
   const mailboxes = mailboxesQuery.data ?? []
@@ -192,23 +198,24 @@ export function MailWorkspacePage() {
     () => resolveMailbox(mailboxKey, mailboxes),
     [mailboxKey, mailboxes],
   )
-  const mailboxType = resolveMailboxType(mailboxKey, selectedMailbox)
-  const starred = mailId !== null && starredIds.has(mailId)
-  const archived = mailId !== null && archivedIds.has(mailId)
+  const mailboxView = resolveMailboxView(mailboxKey, selectedMailbox)
 
   const normalMailsQuery = useMailboxMails(
     selectedMailbox?.id ?? null,
     page,
     30,
-    mailboxKey !== 'starred' && mailboxKey !== 'archive',
+    mailboxKey !== 'starred' && mailboxKey !== 'archive' && mailboxKey !== 'deleted',
   )
   const allMailsQuery = useAllMails(
     0,
     100,
     mailboxKey === 'starred' || mailboxKey === 'archive',
   )
+  const deletedMailsQuery = useDeletedMails(page, 30, true)
   const detailQuery = useMailDetail(mailId)
   const detail = detailQuery.data
+  const starred = detail?.isStarred ?? false
+  const archived = detail?.mailboxType === 'ARCHIVE'
 
   const systemMailboxes = SYSTEM_MAILBOXES
     .map((item) => mailboxes.find((mailbox) => mailbox.type === item.type))
@@ -228,27 +235,28 @@ export function MailWorkspacePage() {
     systemMailboxes.forEach((mailbox, index) => {
       const data = countQueries[index]?.data
       counts[String(mailbox.id)] =
-        data?.content.filter((mail) => !mail.seen && !archivedIds.has(mail.id)).length ?? 0
+        data?.content.filter((mail) => !mail.seen).length ?? 0
     })
+    counts.deleted = deletedMailsQuery.data?.total ?? 0
     return counts
-  }, [archivedIds, countQueries, systemMailboxes])
+  }, [countQueries, deletedMailsQuery.data?.total, systemMailboxes])
 
   const sourceMails = useMemo(() => {
     if (mailboxKey === 'starred') {
-      return allMailsQuery.data?.content.filter((mail) => starredIds.has(mail.id)) ?? []
+      return allMailsQuery.data?.content.filter((mail) => mail.isStarred) ?? []
     }
     if (mailboxKey === 'archive') {
-      return allMailsQuery.data?.content.filter((mail) => archivedIds.has(mail.id)) ?? []
+      return allMailsQuery.data?.content.filter((mail) => mail.mailboxType === 'ARCHIVE') ?? []
     }
-    return (normalMailsQuery.data?.content ?? []).filter(
-      (mail) => !archivedIds.has(mail.id),
-    )
+    if (mailboxKey === 'deleted') {
+      return deletedMailsQuery.data?.content ?? []
+    }
+    return normalMailsQuery.data?.content ?? []
   }, [
     allMailsQuery.data?.content,
-    archivedIds,
+    deletedMailsQuery.data?.content,
     mailboxKey,
     normalMailsQuery.data?.content,
-    starredIds,
   ])
 
   const visibleMails = useMemo(
@@ -268,14 +276,16 @@ export function MailWorkspacePage() {
       mailboxKey === 'starred' ||
       mailboxKey === 'archive' ||
       deferredSearch ||
-      unreadOnly ||
-      archivedIds.size > 0
+      unreadOnly
     ) {
       return visibleMails.length
     }
+    if (mailboxKey === 'deleted') {
+      return deletedMailsQuery.data?.total ?? 0
+    }
     return normalMailsQuery.data?.total ?? 0
   }, [
-    archivedIds.size,
+    deletedMailsQuery.data?.total,
     deferredSearch,
     mailboxKey,
     normalMailsQuery.data?.total,
@@ -284,9 +294,11 @@ export function MailWorkspacePage() {
   ])
 
   const totalPages =
-    mailboxKey === 'starred' || mailboxKey === 'archive'
-      ? 1
-      : normalMailsQuery.data?.totalPages ?? 1
+    mailboxKey === 'deleted'
+      ? deletedMailsQuery.data?.totalPages ?? 1
+      : mailboxKey === 'starred' || mailboxKey === 'archive'
+        ? 1
+        : normalMailsQuery.data?.totalPages ?? 1
 
   useEffect(() => {
     setPage(0)
@@ -301,60 +313,6 @@ export function MailWorkspacePage() {
     }
   }, [mailboxKey, mailboxes, mailboxesQuery.isSuccess, navigate])
 
-  const starStorageKey = `email-stars:${user?.id ?? 'current-user'}`
-  const archiveStorageKey = `email-archive:${user?.id ?? 'current-user'}`
-
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(starStorageKey) ?? '[]') as unknown
-      setStarredIds(
-        new Set(Array.isArray(saved) ? saved.filter((id): id is number => typeof id === 'number') : []),
-      )
-    } catch {
-      setStarredIds(new Set())
-    }
-  }, [starStorageKey])
-
-  const saveStars = (next: Set<number>) => {
-    setStarredIds(next)
-    localStorage.setItem(starStorageKey, JSON.stringify([...next]))
-  }
-
-  const toggleStar = (id: number) => {
-    const next = new Set(starredIds)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    saveStars(next)
-  }
-
-  useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(archiveStorageKey) ?? '[]') as unknown
-      setArchivedIds(
-        new Set(
-          Array.isArray(saved)
-            ? saved.filter((id): id is number => typeof id === 'number')
-            : [],
-        ),
-      )
-    } catch {
-      setArchivedIds(new Set())
-    }
-  }, [archiveStorageKey])
-
-  const toggleArchive = (id: number) => {
-    const next = new Set(archivedIds)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    setArchivedIds(next)
-    localStorage.setItem(archiveStorageKey, JSON.stringify([...next]))
-    navigate(`/mail/${mailboxKey}`)
-    pushToast({
-      message: next.has(id) ? 'Message archived.' : 'Message restored.',
-      tone: 'success',
-    })
-  }
-
   const invalidateMailData = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: MAILS_QUERY_KEY }),
@@ -363,9 +321,73 @@ export function MailWorkspacePage() {
   }
 
   const markReadMutation = useMutation({
-    mutationFn: markMailRead,
+    mutationFn: (id: number) => setMailRead(id, true),
     onSuccess: invalidateMailData,
   })
+
+  const starMutation = useMutation({
+    mutationFn: ({ id, starred }: { id: number; starred: boolean }) =>
+      setMailStarred(id, starred),
+    onSuccess: invalidateMailData,
+    onError: (error) => {
+      pushToast({ message: getApiErrorMessage(error), tone: 'danger' })
+    },
+  })
+
+  const archiveMutation = useMutation({
+    mutationFn: ({ id, archived }: { id: number; archived: boolean }) =>
+      setMailArchived(id, archived),
+    onSuccess: invalidateMailData,
+    onError: (error) => {
+      pushToast({ message: getApiErrorMessage(error), tone: 'danger' })
+    },
+  })
+
+  const moveMutation = useMutation({
+    mutationFn: ({ id, mailboxId }: { id: number; mailboxId: number }) =>
+      moveMail(id, mailboxId),
+    onSuccess: async () => {
+      await invalidateMailData()
+      navigate(`/mail/${mailboxKey}`)
+      pushToast({ message: 'Message moved.', tone: 'success' })
+    },
+    onError: (error) => {
+      pushToast({ message: getApiErrorMessage(error), tone: 'danger' })
+    },
+  })
+
+  const archiveFolders = useMemo(
+    () =>
+      mailboxes
+        .filter((mailbox) => mailbox.type === 'ARCHIVE' && mailbox.label)
+        .map((mailbox) => ({ id: mailbox.id, name: mailbox.name })),
+    [mailboxes],
+  )
+
+  const toggleArchive = (id: number) => {
+    const current =
+      id === mailId
+        ? archived
+        : ((normalMailsQuery.data?.content.find((mail) => mail.id === id) ??
+            allMailsQuery.data?.content.find((mail) => mail.id === id))?.mailboxType ===
+          'ARCHIVE')
+    archiveMutation.mutate({ id, archived: !current })
+    navigate(`/mail/${mailboxKey}`)
+    pushToast({
+      message: current ? 'Message restored.' : 'Message archived.',
+      tone: 'success',
+    })
+  }
+
+  const toggleStar = (id: number) => {
+    const current =
+      id === mailId
+        ? (detail?.isStarred ?? false)
+        : (normalMailsQuery.data?.content.find((mail) => mail.id === id)?.isStarred ??
+          allMailsQuery.data?.content.find((mail) => mail.id === id)?.isStarred ??
+          false)
+    starMutation.mutate({ id, starred: !current })
+  }
 
   const readSyncedId = useRef<number | null>(null)
   useEffect(() => {
@@ -375,11 +397,36 @@ export function MailWorkspacePage() {
   }, [detail, markReadMutation])
 
   const deleteMutation = useMutation({
-    mutationFn: deleteMail,
+    mutationFn: (id: number) => setMailDeleted(id, true),
     onSuccess: async (_, id) => {
       await invalidateMailData()
       if (id === mailId) navigate(`/mail/${mailboxKey}`, { replace: true })
-      pushToast({ message: 'Message moved to trash.', tone: 'success' })
+      pushToast({ message: 'Message deleted.', tone: 'success' })
+    },
+    onError: (error) => {
+      pushToast({ message: getApiErrorMessage(error), tone: 'danger' })
+    },
+  })
+
+  const restoreMutation = useMutation({
+    mutationFn: (id: number) => setMailDeleted(id, false),
+    onSuccess: async (_, id) => {
+      await invalidateMailData()
+      if (id === mailId) navigate(`/mail/${mailboxKey}`, { replace: true })
+      pushToast({ message: 'Message restored.', tone: 'success' })
+    },
+    onError: (error) => {
+      pushToast({ message: getApiErrorMessage(error), tone: 'danger' })
+    },
+  })
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: permanentlyDeleteMail,
+    onSuccess: async (_, id) => {
+      queryClient.removeQueries({ queryKey: [...MAIL_DETAIL_QUERY_KEY, id] })
+      await queryClient.invalidateQueries({ queryKey: MAILS_QUERY_KEY })
+      if (id === mailId) navigate('/mail/deleted', { replace: true })
+      pushToast({ message: 'Message permanently deleted.', tone: 'success' })
     },
     onError: (error) => {
       pushToast({ message: getApiErrorMessage(error), tone: 'danger' })
@@ -491,11 +538,19 @@ export function MailWorkspacePage() {
 
   const handleDelete = () => {
     if (!detail) return
-    const message =
-      mailboxType === 'TRASH'
-        ? 'Delete this message permanently?'
-        : 'Move this message to trash?'
-    if (window.confirm(message)) deleteMutation.mutate(detail.id)
+    if (mailboxView === 'DELETED') {
+      if (window.confirm('Delete this message permanently? This cannot be undone.')) {
+        permanentDeleteMutation.mutate(detail.id)
+      }
+      return
+    }
+    if (window.confirm('Delete this message?')) deleteMutation.mutate(detail.id)
+  }
+
+  const handleRestore = () => {
+    if (detail && window.confirm('Restore this message to its original mailbox?')) {
+      restoreMutation.mutate(detail.id)
+    }
   }
 
   const handleDownload = async (attachment: Attachment) => {
@@ -518,18 +573,21 @@ export function MailWorkspacePage() {
   const refreshCurrent = () => {
     if (mailboxKey === 'starred' || mailboxKey === 'archive') {
       void allMailsQuery.refetch()
+    } else if (mailboxKey === 'deleted') {
+      void deletedMailsQuery.refetch()
     } else {
       void normalMailsQuery.refetch()
     }
   }
 
-  const usesAggregateList = mailboxKey === 'starred' || mailboxKey === 'archive'
-  const listLoading =
-    mailboxesQuery.isLoading ||
-    (usesAggregateList ? allMailsQuery.isLoading : normalMailsQuery.isLoading)
-  const listError =
-    mailboxesQuery.isError ||
-    (usesAggregateList ? allMailsQuery.isError : normalMailsQuery.isError)
+  const activeListQuery =
+    mailboxKey === 'deleted'
+      ? deletedMailsQuery
+      : mailboxKey === 'starred' || mailboxKey === 'archive'
+        ? allMailsQuery
+        : normalMailsQuery
+  const listLoading = mailboxesQuery.isLoading || activeListQuery.isLoading
+  const listError = mailboxesQuery.isError || activeListQuery.isError
 
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
@@ -593,9 +651,7 @@ export function MailWorkspacePage() {
           >
             <RefreshCw
               size={14}
-              className={cn(
-                (normalMailsQuery.isFetching || allMailsQuery.isFetching) && 'animate-spin',
-              )}
+              className={cn(activeListQuery.isFetching && 'animate-spin')}
             />
           </button>
           <button
@@ -621,7 +677,7 @@ export function MailWorkspacePage() {
           >
             <MessageList
               mails={visibleMails}
-              mailboxType={mailboxType}
+              mailboxView={mailboxView}
               selectedId={mailId}
               loading={listLoading}
               error={listError}
@@ -631,8 +687,7 @@ export function MailWorkspacePage() {
               search={search}
               unreadOnly={unreadOnly}
               sort={sort}
-              starredIds={starredIds}
-              refreshing={normalMailsQuery.isFetching || allMailsQuery.isFetching}
+              refreshing={activeListQuery.isFetching}
               onSearchChange={setSearch}
               onUnreadOnlyChange={setUnreadOnly}
               onSortChange={setSort}
@@ -651,11 +706,12 @@ export function MailWorkspacePage() {
           >
             <MessageReader
               mail={detail}
-              mailboxType={mailboxType}
+              mailboxView={mailboxView}
               loading={detailQuery.isLoading}
               error={detailQuery.isError}
               starred={starred}
               archived={archived}
+              archiveFolders={archiveFolders}
               onBack={() => navigate(`/mail/${mailboxKey}`)}
               onToggleStar={() => {
                 if (mailId !== null) toggleStar(mailId)
@@ -663,9 +719,14 @@ export function MailWorkspacePage() {
               onToggleArchive={() => {
                 if (mailId !== null) toggleArchive(mailId)
               }}
+              onMoveToFolder={(mailboxId) => {
+                if (mailId !== null) moveMutation.mutate({ id: mailId, mailboxId })
+              }}
               onReply={openReply}
               onEditDraft={openDraft}
               onDelete={handleDelete}
+              onRestore={handleRestore}
+              onPermanentDelete={handleDelete}
               onDownloadAttachment={(attachment) => void handleDownload(attachment)}
             />
           </div>

@@ -9,6 +9,7 @@ import {
   Pencil,
   Send,
   Star,
+  Trash,
   Trash2,
   X,
   type LucideIcon,
@@ -173,7 +174,9 @@ export function MailSidebar({
   const sent = mailboxes.find((mailbox) => mailbox.type === 'SENT')
   const drafts = mailboxes.find((mailbox) => mailbox.type === 'DRAFT')
   const trash = mailboxes.find((mailbox) => mailbox.type === 'TRASH')
-  const customMailboxes = mailboxes.filter((mailbox) => mailbox.type === 'CUSTOM')
+  const customMailboxes = mailboxes.filter(
+    (mailbox) => mailbox.type === 'ARCHIVE' && mailbox.label,
+  )
 
   const select = (key: string) => {
     onSelect(key)
@@ -292,6 +295,13 @@ export function MailSidebar({
                 active={selectedKey === 'trash'}
                 count={trash ? counts[String(trash.id)] : 0}
                 onClick={() => select('trash')}
+              />
+              <NavItem
+                icon={Trash}
+                label="Deleted"
+                active={selectedKey === 'deleted'}
+                count={counts.deleted ?? 0}
+                onClick={() => select('deleted')}
               />
             </div>
           </div>

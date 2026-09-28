@@ -15,7 +15,7 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource(CorsProperties props) {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(props.getAllowedOrigins());
-        cfg.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);

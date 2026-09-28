@@ -98,6 +98,7 @@ public class MaildirProcessor {
     private Mail saveMail(Mailbox mailbox, ParsedMessage parsed, Path archivedFile) {
         Mail mail = new Mail();
         mail.setMailbox(mailbox);
+        mail.setUserId(mailbox.getUserId());
         mail.setMessageId(parsed.messageId());
         mail.setFromAddress(parsed.fromAddress());
         mail.setReplyTo(parsed.replyTo());

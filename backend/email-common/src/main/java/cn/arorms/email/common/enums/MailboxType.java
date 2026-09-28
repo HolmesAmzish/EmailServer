@@ -5,5 +5,5 @@ public enum MailboxType {
     SENT,
     DRAFT,
     TRASH,
-    CUSTOM
+    ARCHIVE
 }

@@ -7,7 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,13 +14,7 @@ import java.time.Instant;
 
 @Getter @Setter
 @Entity
-@Table(
-    name = "mailboxes",
-    uniqueConstraints = @UniqueConstraint(
-        name = "uk_mailboxes_user_type",
-        columnNames = {"user_id", "type"}
-    )
-)
+@Table(name = "mailboxes")
 public class Mailbox extends BaseEntity {
     @Column(name = "user_id", nullable = false, length = 36)
     private String userId;

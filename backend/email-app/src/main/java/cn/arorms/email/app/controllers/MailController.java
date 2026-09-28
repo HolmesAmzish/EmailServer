@@ -3,9 +3,13 @@ package cn.arorms.email.app.controllers;
 import cn.arorms.email.app.entity.Mail;
 import cn.arorms.email.app.repository.AttachmentRepository;
 import cn.arorms.email.app.repository.MailRepository;
-import cn.arorms.email.app.repository.MailboxRepository;
 import cn.arorms.email.app.service.MailService;
+import cn.arorms.email.common.requests.MailArchiveRequest;
+import cn.arorms.email.common.requests.MailDeleteRequest;
 import cn.arorms.email.common.requests.MailDraftUpsertRequest;
+import cn.arorms.email.common.requests.MailMoveRequest;
+import cn.arorms.email.common.requests.MailReadRequest;
+import cn.arorms.email.common.requests.MailStarRequest;
 import cn.arorms.email.common.responses.AttachmentVo;
 import cn.arorms.email.common.responses.MailDetailVo;
 import cn.arorms.email.common.responses.MailSummaryVo;
@@ -25,16 +29,13 @@ import java.util.List;
 public class MailController {
 
     private final MailService mailService;
-    private final MailboxRepository mailboxRepository;
     private final MailRepository mailRepository;
     private final AttachmentRepository attachmentRepository;
 
     public MailController(MailService mailService,
-                          MailboxRepository mailboxRepository,
                           MailRepository mailRepository,
                           AttachmentRepository attachmentRepository) {
         this.mailService = mailService;
-        this.mailboxRepository = mailboxRepository;
         this.mailRepository = mailRepository;
         this.attachmentRepository = attachmentRepository;
     }
@@ -52,20 +53,30 @@ public class MailController {
     }
 
     /**
+     * Get all soft-deleted mails of the user
+     */
+    @GetMapping("/deleted")
+    public ResponseEntity<PageResponse<MailSummaryVo>> getDeletedMails(
+            @AuthenticationPrincipal UserPrincipal user, Pageable pageable
+    ) {
+        return ResponseEntity.ok(mailService.getDeleted(user, pageable));
+    }
+
+    /**
      * Create a draft
      * @param user
      */
     @PostMapping("/draft")
-    public Mail createDraft(@AuthenticationPrincipal UserPrincipal user, @RequestBody MailDraftUpsertRequest request) {
-        return mailService.createDraft(user, request);
+    public MailDetailVo createDraft(@AuthenticationPrincipal UserPrincipal user, @RequestBody MailDraftUpsertRequest request) {
+        return mailService.toDetailVo(mailService.createDraft(user, request));
     }
 
     /**
      * Update draft
      */
     @PutMapping("/{id}")
-    public Mail updateDraft(@AuthenticationPrincipal UserPrincipal user, @PathVariable Long id, @RequestBody MailDraftUpsertRequest request) {
-        return mailService.updateDraft(user, id, request);
+    public MailDetailVo updateDraft(@AuthenticationPrincipal UserPrincipal user, @PathVariable Long id, @RequestBody MailDraftUpsertRequest request) {
+        return mailService.toDetailVo(mailService.updateDraft(user, id, request));
     }
 
     /**
@@ -76,8 +87,8 @@ public class MailController {
      * @throws MessagingException
      */
     @PostMapping("/send")
-    public Mail send(@AuthenticationPrincipal UserPrincipal user, @RequestBody SendRequest request) throws MessagingException {
-        return mailService.send(user, request.to(), request.subject(), request.content());
+    public MailDetailVo send(@AuthenticationPrincipal UserPrincipal user, @RequestBody SendRequest request) throws MessagingException {
+        return mailService.toDetailVo(mailService.send(user, request.to(), request.subject(), request.content()));
     }
 
     /**
@@ -88,7 +99,7 @@ public class MailController {
      */
     @GetMapping("/{id}")
     public MailDetailVo getMail(@AuthenticationPrincipal UserPrincipal user, @PathVariable Long id) {
-        Mail mail = mailRepository.findByIdAndMailboxUserId(id, user.getId())
+        Mail mail = mailRepository.findByIdAndUserId(id, user.getId())
             .orElseThrow(() -> new ServiceException("Mail not found: " + id));
 
         List<AttachmentVo> attachments = attachmentRepository.findByMailId(mail.getId()).stream()
@@ -97,6 +108,7 @@ public class MailController {
 
         return new MailDetailVo(
             mail.getId(),
+            mail.getMailbox().getType(),
             mail.getFromAddress(),
             mail.getReplyTo(),
             mail.getSubject(),
@@ -104,6 +116,8 @@ public class MailController {
             mail.getReceivedAt(),
             mail.getDeliveredTo(),
             mail.isSeen(),
+            mail.isStarred(),
+            mail.isDeleted(),
             mail.getTextContent(),
             mail.getHtmlContent(),
             mail.getRawPath(),
@@ -112,23 +126,75 @@ public class MailController {
     }
 
     /**
-     * Update status of a mail(read)
+     * Mark a mail as read or unread
      * @param user
      * @param id
      */
-    @PatchMapping("/{id}")
-    public void markRead(@AuthenticationPrincipal UserPrincipal user, @PathVariable Long id) {
-        Mail mail = mailRepository.findByIdAndMailboxUserId(id, user.getId())
-            .orElseThrow(() -> new ServiceException("Mail not found: " + id));
-        mail.setSeen(true);
-        mailRepository.save(mail);
+    @PatchMapping("/{id}/read")
+    public void setRead(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long id,
+            @RequestBody MailReadRequest request
+    ) {
+        mailService.setRead(user, id, request.seen());
     }
 
     /**
-     * Delete mail by id
+     * Soft delete a mail or restore it (restore puts it back in its original mailbox)
      */
-    @DeleteMapping("/{id}")
-    public void deleteMail(@AuthenticationPrincipal UserPrincipal user, @PathVariable Long id) {
-        mailService.delete(user, id);
+    @PatchMapping("/{id}/delete")
+    public void setDelete(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long id,
+            @RequestBody MailDeleteRequest request
+    ) {
+        mailService.setDeleted(user, id, request.isDeleted());
+    }
+
+    /**
+     * Permanently delete a mail that is already in the recycle bin.
+     */
+    @DeleteMapping("/{id}/permanent")
+    public void permanentlyDelete(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long id
+    ) {
+        mailService.permanentlyDelete(user, id);
+    }
+
+    /**
+     * Star or unstar a mail
+     */
+    @PatchMapping("/{id}/star")
+    public void setStar(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long id,
+            @RequestBody MailStarRequest request
+    ) {
+        mailService.setStarred(user, id, request.isStarred());
+    }
+
+    /**
+     * Archive a mail (move to default ARCHIVE mailbox) or restore it (move back to INBOX)
+     */
+    @PatchMapping("/{id}/archive")
+    public void setArchive(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long id,
+            @RequestBody MailArchiveRequest request
+    ) {
+        mailService.setArchived(user, id, request.archived());
+    }
+
+    /**
+     * Move a mail into a specific archive folder (default or labeled ARCHIVE mailbox)
+     */
+    @PatchMapping("/{id}/move")
+    public void move(
+            @AuthenticationPrincipal UserPrincipal user,
+            @PathVariable Long id,
+            @RequestBody MailMoveRequest request
+    ) {
+        mailService.moveToArchiveFolder(user, id, request.mailboxId());
     }
 }
