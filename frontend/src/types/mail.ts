@@ -9,6 +9,15 @@ export interface PageResponse<T> {
   last: boolean
 }
 
+export interface SpringPage<T> {
+  content: T[]
+  totalElements: number
+  number: number
+  size: number
+  totalPages: number
+  last: boolean
+}
+
 export interface Mailbox {
   id: number
   label: string | null

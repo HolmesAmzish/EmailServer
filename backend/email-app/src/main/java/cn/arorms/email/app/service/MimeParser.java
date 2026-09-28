@@ -61,7 +61,7 @@ public class MimeParser {
 
         BodyCollector collector = new BodyCollector();
         List<ParsedAttachment> attachments = new ArrayList<>();
-        extractParts(message, collector, attachments);
+        extractParts(message.getContent(), collector, attachments);
 
         boolean bounce = detectBounce(message);
         String originalMessageId = bounce ? extractOriginalMessageId(message) : null;

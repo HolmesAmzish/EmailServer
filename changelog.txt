@@ -1,3 +1,11 @@
+0.4.1
+1. Add global exception handler
+2. Fix mail file content parse
+3. Fix frontend structure
+
+0.4.0
+1. Add frontend
+
 0.3.0
 1. Update arorms framework dependency
 2. Update mail and mailbox api

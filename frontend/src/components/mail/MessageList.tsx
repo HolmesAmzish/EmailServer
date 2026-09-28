@@ -71,7 +71,7 @@ export function MessageList({
   onRefresh,
 }: MessageListProps) {
   return (
-    <section className="flex min-h-0 min-w-0 flex-col border-r border-border bg-card">
+    <section className="flex h-full min-h-0 w-full min-w-0 flex-col border-r border-border bg-card">
       <div className="shrink-0 border-b border-border px-3 py-3">
         <div className="relative">
           <Search

@@ -6,6 +6,7 @@ import type {
   MailDetail,
   MailSummary,
   PageResponse,
+  SpringPage,
 } from '@/types/mail'
 
 const pageQuery = (page: number, size: number) =>
@@ -16,12 +17,16 @@ const pageQuery = (page: number, size: number) =>
 
 export const fetchMailboxes = (): Promise<Mailbox[]> => get<Mailbox[]>('/api/mailbox')
 
-export const fetchMailboxMails = (
+export const fetchMailboxMails = async (
   mailboxId: number,
   page: number,
   size: number,
-): Promise<PageResponse<MailSummary>> =>
-  get<PageResponse<MailSummary>>(`/api/mailbox/${mailboxId}/mails?${pageQuery(page, size)}`)
+): Promise<PageResponse<MailSummary>> => {
+  const response = await get<SpringPage<MailSummary>>(
+    `/api/mailbox/${mailboxId}/mails?${pageQuery(page, size)}`,
+  )
+  return normalizeSpringPage(response)
+}
 
 export const fetchAllMails = (page = 0, size = 100): Promise<PageResponse<MailSummary>> =>
   get<PageResponse<MailSummary>>(`/api/mail?${pageQuery(page, size)}`)
@@ -66,4 +71,15 @@ function toMailboxForm(input: MailboxUpsertInput): URLSearchParams {
   form.set('mailboxName', input.mailboxName)
   form.set('label', input.label)
   return form
+}
+
+function normalizeSpringPage<T>(page: SpringPage<T>): PageResponse<T> {
+  return {
+    content: page.content,
+    total: page.totalElements,
+    page: page.number,
+    size: page.size,
+    totalPages: page.totalPages,
+    last: page.last,
+  }
 }

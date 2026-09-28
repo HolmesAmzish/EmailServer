@@ -264,9 +264,24 @@ export function MailWorkspacePage() {
   )
 
   const total = useMemo(() => {
-    if (mailboxKey === 'starred' || mailboxKey === 'archive') return visibleMails.length
+    if (
+      mailboxKey === 'starred' ||
+      mailboxKey === 'archive' ||
+      deferredSearch ||
+      unreadOnly ||
+      archivedIds.size > 0
+    ) {
+      return visibleMails.length
+    }
     return normalMailsQuery.data?.total ?? 0
-  }, [mailboxKey, normalMailsQuery.data?.total, visibleMails.length])
+  }, [
+    archivedIds.size,
+    deferredSearch,
+    mailboxKey,
+    normalMailsQuery.data?.total,
+    unreadOnly,
+    visibleMails.length,
+  ])
 
   const totalPages =
     mailboxKey === 'starred' || mailboxKey === 'archive'
@@ -517,7 +532,7 @@ export function MailWorkspacePage() {
     (usesAggregateList ? allMailsQuery.isError : normalMailsQuery.isError)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-dvh overflow-hidden bg-background">
       <MailSidebar
         mailboxes={mailboxes}
         selectedKey={mailboxKey}
@@ -597,8 +612,13 @@ export function MailWorkspacePage() {
           </div>
         </header>
 
-        <main className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]">
-          <div className={cn('min-h-0 min-w-0', mailId !== null ? 'hidden md:flex' : 'flex')}>
+        <main className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden md:grid-cols-[380px_minmax(0,1fr)] xl:grid-cols-[420px_minmax(0,1fr)]">
+          <div
+            className={cn(
+              'h-full min-h-0 min-w-0 overflow-hidden',
+              mailId !== null ? 'hidden md:flex' : 'flex',
+            )}
+          >
             <MessageList
               mails={visibleMails}
               mailboxType={mailboxType}
@@ -623,7 +643,12 @@ export function MailWorkspacePage() {
             />
           </div>
 
-          <div className={cn('min-h-0 min-w-0', mailId !== null ? 'flex' : 'hidden md:flex')}>
+          <div
+            className={cn(
+              'h-full min-h-0 min-w-0 overflow-hidden',
+              mailId !== null ? 'flex' : 'hidden md:flex',
+            )}
+          >
             <MessageReader
               mail={detail}
               mailboxType={mailboxType}

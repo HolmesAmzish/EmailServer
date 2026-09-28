@@ -89,7 +89,7 @@ function AttachmentRow({
 
 function ReaderEmpty() {
   return (
-    <div className="flex h-full min-h-[520px] flex-col items-center justify-center bg-background/45 p-8 text-center">
+    <div className="flex h-full min-h-[520px] w-full flex-col items-center justify-center bg-background/45 p-8 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-card text-muted-foreground shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:shadow-none">
         <MailOpen size={24} strokeWidth={1.6} />
       </div>
@@ -118,7 +118,7 @@ export function MessageReader({
 }: MessageReaderProps) {
   if (loading && !mail) {
     return (
-      <section className="flex min-h-0 flex-1 items-center justify-center bg-background/45">
+      <section className="flex h-full min-h-0 w-full flex-1 items-center justify-center bg-background/45">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
       </section>
     )
@@ -126,7 +126,7 @@ export function MessageReader({
 
   if (error && !mail) {
     return (
-      <section className="flex min-h-0 flex-1 flex-col items-center justify-center bg-background/45 p-8 text-center">
+      <section className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center bg-background/45 p-8 text-center">
         <p className="text-[13px] font-medium text-danger">Message could not be opened.</p>
         <p className="mt-1 text-[12px] text-muted-foreground">
           It may have been moved or deleted.
@@ -142,7 +142,7 @@ export function MessageReader({
   const messageDate = mail.receivedAt ?? mail.sentAt
 
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col bg-background/45">
+    <section className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col bg-background/45">
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card/80 px-3 backdrop-blur-xl lg:px-4">
         <div className="flex min-w-0 items-center gap-2">
           <button
