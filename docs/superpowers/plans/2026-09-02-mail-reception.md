@@ -157,7 +157,7 @@ git commit -m "feat: extend domain model for received mail and attachments"
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.entity.Mailbox;
 import cn.arorms.email.common.enums.MailboxType;
 import cn.arorms.email.repository.MailboxRepository;
 import jakarta.transaction.Transactional;
@@ -370,7 +370,7 @@ git commit -m "feat: add maildir path configuration"
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.entity.Mailbox;
 import cn.arorms.email.common.enums.MailboxType;
 import cn.arorms.email.common.property.MailProperties;
 import cn.arorms.email.repository.MailboxRepository;
@@ -735,7 +735,7 @@ Optional<MailRecipient> findByMail_MessageIdAndRecipient(String messageId, Strin
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.common.entity.MailRecipient;
+import cn.arorms.email.entity.MailRecipient;
 import cn.arorms.email.common.enums.DeliveryStatus;
 import cn.arorms.email.repository.MailRecipientRepository;
 import org.springframework.stereotype.Component;
@@ -806,9 +806,9 @@ git commit -m "feat: handle delivery status notifications and update original ma
 ```java
 package cn.arorms.email.service;
 
-import cn.arorms.email.common.entity.Attachment;
-import cn.arorms.email.common.entity.Mail;
-import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.entity.Attachment;
+import cn.arorms.email.entity.Mail;
+import cn.arorms.email.entity.Mailbox;
 import cn.arorms.email.property.MaildirProperties;
 import cn.arorms.email.repository.AttachmentRepository;
 import cn.arorms.email.repository.MailRepository;

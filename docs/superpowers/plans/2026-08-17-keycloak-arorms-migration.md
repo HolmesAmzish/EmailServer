@@ -222,7 +222,7 @@ Remove unused imports: `FetchType`, `JoinColumn`, `ManyToOne`.
 ```java
 package cn.arorms.email.common.repository;
 
-import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.entity.Mailbox;
 import cn.arorms.email.common.enums.MailboxType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -427,7 +427,7 @@ git commit -m "refactor(email-app): remove local auth controller, service and ex
 package cn.arorms.email.controllers;
 
 import cn.arorms.framework.security.UserPrincipal;
-import cn.arorms.email.common.entity.Mail;
+import cn.arorms.email.entity.Mail;
 import cn.arorms.email.service.MailService;
 import jakarta.mail.MessagingException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -480,8 +480,8 @@ package cn.arorms.email.service;
 
 import cn.arorms.framework.common.exception.ServiceException;
 import cn.arorms.framework.security.UserPrincipal;
-import cn.arorms.email.common.entity.Mail;
-import cn.arorms.email.common.entity.Mailbox;
+import cn.arorms.email.entity.Mail;
+import cn.arorms.email.entity.Mailbox;
 import cn.arorms.email.common.enums.MailboxType;
 import cn.arorms.email.common.property.MailProperties;
 import cn.arorms.email.common.repository.MailRepository;

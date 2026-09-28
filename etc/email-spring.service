@@ -1,0 +1,19 @@
+[Unit]
+Description=Email Server Backend Service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=mail
+Group=mail
+WorkingDirectory=/opt/arorms/email
+EnvironmentFile=/etc/default/arorms/email-spring.env
+ExecStart=/usr/bin/java -jar /opt/arorms/email/backend.jar
+
+SuccessExitStatus=143
+
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

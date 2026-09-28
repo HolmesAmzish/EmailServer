@@ -1,3 +1,8 @@
+0.3.0
+1. Update arorms framework dependency
+2. Update mail and mailbox api
+3. Update plus address parse
+
 0.2.1 2026-09-02
 1. Remove useless package scan
 2. Add flatten maven plugin

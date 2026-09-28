@@ -7,8 +7,8 @@ POST {{baseUrl}}/api/mailbox HTTP/1.1
 Authorization: Bearer {{accessToken}}
 Content-Type: application/x-www-form-urlencoded
 
-mailboxName = Work &
-label = work
+mailboxName = Test &
+label = test
 
 ### Rename / update a custom mailbox
 PUT {{baseUrl}}/api/mailbox/{{mailboxId}} HTTP/1.1

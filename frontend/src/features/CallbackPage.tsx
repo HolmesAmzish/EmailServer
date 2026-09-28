@@ -1,24 +1,48 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { handleCallback } from '@/api/auth'
+import { handleCallback, isAuthenticated, login } from '@/api/auth'
 
 export function CallbackPage() {
   const navigate = useNavigate()
   const exchanged = useRef(false)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     if (exchanged.current) return
     exchanged.current = true
-    handleCallback().then(() => navigate('/', { replace: true }))
+
+    void handleCallback().then(async (user) => {
+      const authenticated = Boolean(user) || (await isAuthenticated())
+      if (authenticated) {
+        navigate('/mail/inbox', { replace: true })
+      } else {
+        setFailed(true)
+      }
+    })
   }, [navigate])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="text-center">
-        <p className="text-xs font-mono text-gray-500 uppercase tracking-wider mb-4">
-          Completing login...
-        </p>
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin mx-auto" />
+        {failed ? (
+          <>
+            <p className="text-[13px] font-medium text-foreground">Sign-in could not be completed.</p>
+            <button
+              type="button"
+              onClick={login}
+              className="mt-4 rounded-full bg-primary px-4 py-2 text-[13px] font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
+            >
+              Try again
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+            <p className="mt-4 text-[11px] font-medium text-muted-foreground">
+              Completing sign in
+            </p>
+          </>
+        )}
       </div>
     </div>
   )
