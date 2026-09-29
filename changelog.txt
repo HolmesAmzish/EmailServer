@@ -1,3 +1,7 @@
+0.4.3
+1. Fix CORS configuration
+2. Add gitlab workflow pipeline
+
 0.4.2
 1. Fix mail delete api to set delete flag instead of moving to Trash
 2. Refactor custom mailbox to archive mailbox

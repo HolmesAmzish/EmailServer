@@ -1,7 +1,6 @@
 package cn.arorms.email.app.entity;
 
 import cn.arorms.framework.common.domain.BaseEntity;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

@@ -1,5 +1,6 @@
 package cn.arorms.email.app.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -11,11 +12,14 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
+    @Value("${application.security.cors.allowed-origins}")
+    private List<String> allowedOrigins;
+
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(CorsProperties props) {
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(props.getAllowedOrigins());
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedOrigins(allowedOrigins);
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);

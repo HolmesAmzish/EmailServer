@@ -43,9 +43,9 @@ application:
     jwt:
       audience: ${JWT_AUD:email-backend}
       client-id: email-react
+    cors:
+      allowed-origins: ${CORS_ORIGINS:https://mail.arorms.cn,http://localhost:5173}
 
-  cors:
-    allowed-origins: ${CORS_ORIGINS:https://mail.arorms.cn,http://localhost:5173}
   mail:
     domain: ${MAIL_DOMAIN:arorms.cn}
     default-from: ${MAIL_DEFAULT_FROM:noreply}
@@ -54,4 +54,8 @@ application:
 
 logging:
   file:
-    name: spring-dev.log
+    name: ${LOG_PATH:/var/log/arorms/email.log}
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30

@@ -36,11 +36,9 @@ test/.access.token
 test/.refresh.cookie
 test/.refresh.token
 
-spring-dev.log
-**/*.gz
-
 test/http/http-client.private.env.json
 
 *.env
 
 /maildir
+/log

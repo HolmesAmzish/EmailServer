@@ -1,0 +1,36 @@
+workflow:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+$/'
+
+variables:
+  GRADLE_USER_HOME: "/home/gitlab-runner/.gradle"
+
+cache:
+  key:
+    files: [frontend/pnpm-lock.yaml]
+  paths: [.pnpm-store, .gradle]
+  policy: pull-push
+
+build-deploy:
+  stage: deploy
+  tags: [deploy]
+  script:
+    # Compile
+    - cd backend && ./mvnw -pl email-app -am clean package -DskipTests
+    - sudo cp email-app/target/backend.jar /opt/arorms/email/backend.jar
+    - cd ..
+
+    - cd frontend && pnpm install && pnpm build
+    - sudo rsync -az --delete dist/ /var/www/arorms/email/
+    - cd ..
+
+    # Install service and nginx conf
+    - sudo cp etc/email-nginx.conf /etc/nginx/sites-available/email.conf
+    # TODO: Comment this line after first running
+    - sudo ln -sfn /etc/nginx/sites-available/email.conf /etc/nginx/sites-enabled/email.conf
+    - sudo cp etc/email-spring.service /etc/systemd/system/email-spring.service
+    - sudo systemctl daemon-reload
+
+    # Restart service and nginx
+    - sudo systemctl restart email-spring.service
+    - sudo systemctl reload nginx
